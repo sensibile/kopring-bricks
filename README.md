@@ -21,6 +21,9 @@ web/
   problem-details-starter
   webmvc-error-autoconfigure
   webmvc-error-starter
+cache/
+  caffeine-cache-autoconfigure
+  caffeine-cache-starter
 ```
 
 `*-autoconfigure` 모듈은 실제 auto-configuration을 제공하고, `*-starter` 모듈은 애플리케이션에서 가져다 쓰는 starter 의존성입니다.
@@ -357,6 +360,73 @@ Example response:
   "detail": "User 1 was not found",
   "code": "USER_NOT_FOUND",
   "request_id": "req-1"
+}
+```
+
+## Caffeine Cache
+
+`caffeine-cache-starter`는 Spring Cache 추상화에 Caffeine 기반 `CacheManager`를 제공합니다. 기본 spec은 local cache 운영에서 무난한 크기 제한, TTL, stats 기록을 켭니다.
+
+기본 동작:
+
+- `spring.cache.type=caffeine` 기본값 적용
+- `@EnableCaching` 적용
+- `CaffeineCacheManager` 제공
+- 기본 spec: `maximumSize=10000,expireAfterWrite=10m,recordStats`
+- cache name 목록 지정 가능
+- cache별 Caffeine spec override 가능
+- 사용자가 직접 `CacheManager` bean을 제공하면 물러남
+
+### Installation
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/sensibile/kopring-bricks")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation("me.sensibile:caffeine-cache-starter:0.0.1-SNAPSHOT")
+}
+```
+
+### Configuration
+
+```yaml
+kopring:
+  bricks:
+    caffeine-cache:
+      enabled: true
+      spec: maximumSize=10000,expireAfterWrite=10m,recordStats
+      cache-names:
+        - users
+        - products
+      allow-null-values: false
+      caches:
+        users:
+          spec: maximumSize=5000,expireAfterWrite=5m,recordStats
+        products:
+          spec: maximumSize=20000,expireAfterWrite=30m,recordStats
+```
+
+### Usage
+
+```kotlin
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.stereotype.Service
+
+@Service
+class UserService {
+    @Cacheable("users")
+    fun findUser(userId: Long): User {
+        TODO("load user")
+    }
 }
 ```
 
