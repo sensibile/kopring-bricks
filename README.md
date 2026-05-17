@@ -11,6 +11,11 @@ http-client/
 jdbc-client/
   vt-jdbc-client-autoconfigure
   vt-jdbc-client-starter
+observability/
+  logging-observation-autoconfigure
+  logging-observation-starter
+  micrometer-tracing-autoconfigure
+  micrometer-tracing-starter
 ```
 
 `*-autoconfigure` 모듈은 실제 auto-configuration을 제공하고, `*-starter` 모듈은 애플리케이션에서 가져다 쓰는 starter 의존성입니다.
@@ -162,6 +167,115 @@ class UserQueryService(
         }
 }
 ```
+
+## Logging Observation
+
+`logging-observation-starter`는 운영 환경에서 바로 검색 가능한 structured JSON logging과 요청 correlation context를 제공합니다. Spring Boot 4의 structured logging 설정을 사용하므로 별도 JSON encoder 의존성을 추가하지 않습니다.
+
+기본 동작:
+
+- `logging.structured.format.console=ecs` 기본값 적용
+- incoming HTTP 요청의 `X-Request-Id` 추출
+- request id가 없으면 생성
+- response `X-Request-Id` header 설정
+- MDC `request_id`에 request id 저장
+- `RestClient` outbound 요청에 `X-Request-Id` 전파
+- async executor용 MDC `TaskDecorator` 제공
+
+### Installation
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/sensibile/kopring-bricks")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation("me.sensibile:logging-observation-starter:0.0.1-SNAPSHOT")
+}
+```
+
+### Configuration
+
+```yaml
+kopring:
+  bricks:
+    logging-observation:
+      enabled: true
+      json:
+        enabled: true
+        console-format: ecs
+      correlation:
+        enabled: true
+        request-header-name: X-Request-Id
+        response-header-name: X-Request-Id
+        generate-if-missing: true
+      mdc:
+        enabled: true
+        request-id-key: request_id
+      rest-client:
+        propagation-enabled: true
+      task-decorator:
+        enabled: true
+```
+
+If `logging.structured.format.console` is already configured by the application, the starter leaves it unchanged.
+
+## Micrometer Tracing
+
+`micrometer-tracing-starter`는 Spring Boot 4 OpenTelemetry starter를 기반으로 Micrometer tracing과 OTLP export 설정을 제공합니다. `logging-observation-starter`를 함께 가져오므로 structured logging과 request correlation도 같이 활성화됩니다.
+
+기본 동작:
+
+- `spring-boot-starter-actuator` 추가
+- `spring-boot-starter-opentelemetry` 추가
+- `management.tracing.enabled=true` 기본값 적용
+- `management.tracing.sampling.probability=1.0` 기본값 적용
+- OTLP traces/metrics/logs endpoint는 명시한 경우에만 설정
+- async/VT 경계에서 trace context를 전파하는 `ContextPropagatingTaskDecorator` 제공
+
+### Installation
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/sensibile/kopring-bricks")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation("me.sensibile:micrometer-tracing-starter:0.0.1-SNAPSHOT")
+}
+```
+
+### Configuration
+
+```yaml
+kopring:
+  bricks:
+    micrometer-tracing:
+      enabled: true
+      sampling:
+        probability: 1.0
+      otlp:
+        traces-endpoint: http://localhost:4318/v1/traces
+        metrics-endpoint: http://localhost:4318/v1/metrics
+      context-propagation:
+        task-decorator-enabled: true
+```
+
+If an application already configures `management.tracing.*`, `management.opentelemetry.*`, or `management.otlp.*` properties, this starter leaves those values unchanged.
 
 ## Build
 

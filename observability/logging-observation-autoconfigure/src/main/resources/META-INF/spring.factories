@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+me.sensibile.kopringbricks.observability.logging.autoconfigure.LoggingObservationEnvironmentPostProcessor
