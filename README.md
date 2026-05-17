@@ -16,6 +16,11 @@ observability/
   logging-observation-starter
   micrometer-tracing-autoconfigure
   micrometer-tracing-starter
+web/
+  problem-details-autoconfigure
+  problem-details-starter
+  webmvc-error-autoconfigure
+  webmvc-error-starter
 ```
 
 `*-autoconfigure` 모듈은 실제 auto-configuration을 제공하고, `*-starter` 모듈은 애플리케이션에서 가져다 쓰는 starter 의존성입니다.
@@ -276,6 +281,84 @@ kopring:
 ```
 
 If an application already configures `management.tracing.*`, `management.opentelemetry.*`, or `management.otlp.*` properties, this starter leaves those values unchanged.
+
+## Web Error Handling
+
+`problem-details-starter`는 Spring `ProblemDetail` 기반 에러 응답을 만들기 위한 공통 API를 제공합니다. `webmvc-error-starter`는 Spring Web MVC에서 예외를 `ProblemDetail` 응답으로 정규화합니다.
+
+기본 동작:
+
+- `spring.mvc.problemdetails.enabled=true` 기본값 적용
+- `ApiException` 제공
+- `ProblemDetailFactory` 제공
+- validation 실패 응답에 `violations` 확장 필드 포함
+- 모든 `ProblemDetail`에 `code` 확장 필드 포함
+- MDC에 `request_id`가 있으면 응답에도 `request_id` 포함
+- 500 응답은 기본적으로 내부 exception message를 숨김
+
+### Installation
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/sensibile/kopring-bricks")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation("me.sensibile:webmvc-error-starter:0.0.1-SNAPSHOT")
+}
+```
+
+### Configuration
+
+```yaml
+kopring:
+  bricks:
+    problem-details:
+      enabled: true
+      type-base-uri: https://sensibile.github.io/kopring-bricks/problems
+      code-property-name: code
+      request-id-property-name: request_id
+    webmvc-error:
+      enabled: true
+      include-exception-message: false
+      internal-error-code: INTERNAL_SERVER_ERROR
+      validation-error-code: VALIDATION_FAILED
+      request-id-mdc-key: request_id
+```
+
+### ApiException
+
+```kotlin
+import me.sensibile.kopringbricks.web.problem.autoconfigure.ApiException
+import org.springframework.http.HttpStatus
+
+class UserNotFoundException(userId: Long) : ApiException(
+    status = HttpStatus.NOT_FOUND,
+    code = "USER_NOT_FOUND",
+    detail = "User $userId was not found",
+    title = "User not found",
+)
+```
+
+Example response:
+
+```json
+{
+  "type": "https://sensibile.github.io/kopring-bricks/problems/user-not-found",
+  "title": "User not found",
+  "status": 404,
+  "detail": "User 1 was not found",
+  "code": "USER_NOT_FOUND",
+  "request_id": "req-1"
+}
+```
 
 ## Build
 

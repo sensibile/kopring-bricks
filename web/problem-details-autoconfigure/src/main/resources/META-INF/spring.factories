@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+me.sensibile.kopringbricks.web.problem.autoconfigure.ProblemDetailsEnvironmentPostProcessor
