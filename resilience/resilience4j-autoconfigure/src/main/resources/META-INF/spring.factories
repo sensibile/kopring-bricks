@@ -1,0 +1,2 @@
+org.springframework.boot.EnvironmentPostProcessor=\
+me.sensibile.kopringbricks.resilience.resilience4j.autoconfigure.Resilience4jEnvironmentPostProcessor

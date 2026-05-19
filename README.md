@@ -24,6 +24,9 @@ web/
 cache/
   caffeine-cache-autoconfigure
   caffeine-cache-starter
+resilience/
+  resilience4j-autoconfigure
+  resilience4j-starter
 ```
 
 `*-autoconfigure` 모듈은 실제 auto-configuration을 제공하고, `*-starter` 모듈은 애플리케이션에서 가져다 쓰는 starter 의존성입니다.
@@ -427,6 +430,117 @@ class UserService {
     fun findUser(userId: Long): User {
         TODO("load user")
     }
+}
+```
+
+## Resilience4j
+
+`resilience4j-starter`는 Spring Boot 4용 Resilience4j starter, AspectJ AOP, Actuator, Micrometer metrics를 묶고 운영에서 무난하게 시작할 수 있는 기본 fault tolerance 설정을 제공합니다.
+
+기본 동작:
+
+- `resilience4j-spring-boot4` 추가
+- `spring-boot-starter-aspectj` 추가
+- `spring-boot-starter-actuator` 추가
+- `resilience4j-micrometer` 추가
+- circuit breaker 기본 config 적용
+- retry 기본 config 적용
+- time limiter 기본 config 적용
+- semaphore bulkhead 기본 config 적용
+- rate limiter 기본 config 적용
+- circuit breaker/rate limiter health indicator 활성화
+- 애플리케이션이 직접 설정한 `resilience4j.*` 값은 유지
+
+### Installation
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/sensibile/kopring-bricks")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation("me.sensibile:resilience4j-starter:0.0.1-SNAPSHOT")
+}
+```
+
+### Configuration
+
+```yaml
+kopring:
+  bricks:
+    resilience4j:
+      enabled: true
+      circuit-breaker:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: 100
+        minimum-number-of-calls: 20
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 2s
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 10
+        automatic-transition-from-open-to-half-open-enabled: true
+      retry:
+        max-attempts: 3
+        wait-duration: 200ms
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2.0
+      time-limiter:
+        timeout-duration: 2s
+        cancel-running-future: true
+      bulkhead:
+        max-concurrent-calls: 25
+        max-wait-duration: 0ms
+      rate-limiter:
+        limit-for-period: 100
+        limit-refresh-period: 1s
+        timeout-duration: 0ms
+      health:
+        circuit-breakers-enabled: true
+        rate-limiters-enabled: true
+```
+
+Generated Resilience4j defaults can still be overridden directly:
+
+```yaml
+resilience4j:
+  circuitbreaker:
+    instances:
+      github:
+        base-config: default
+        sliding-window-size: 50
+  retry:
+    instances:
+      github:
+        base-config: default
+        max-attempts: 2
+```
+
+### Usage
+
+```kotlin
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker
+import io.github.resilience4j.retry.annotation.Retry
+import org.springframework.stereotype.Service
+
+@Service
+class GithubService(
+    private val githubApi: GithubApi,
+) {
+    @Retry(name = "github")
+    @CircuitBreaker(name = "github", fallbackMethod = "fallback")
+    fun findUser(login: String): GithubUser =
+        githubApi.findUser(login)
+
+    private fun fallback(login: String, ex: Throwable): GithubUser =
+        GithubUser(login = login, displayName = "unknown")
 }
 ```
 
