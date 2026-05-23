@@ -1,25 +1,12 @@
 plugins {
-    `java-library`
-    `maven-publish`
-    id("io.spring.dependency-management")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
-    }
+    id("kopring.starter-conventions")
 }
 
 dependencies {
     api(project(":observability:logging-observation-starter"))
     api(project(":observability:micrometer-tracing-autoconfigure"))
-    api("org.springframework.boot:spring-boot-starter-actuator")
-    api("org.springframework.boot:spring-boot-starter-opentelemetry")
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
+    api(libs.spring.boot.starter.actuator)
+    api(libs.spring.boot.starter.opentelemetry)
 }
 
 publishing {

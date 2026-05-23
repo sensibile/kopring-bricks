@@ -1,3 +1,7 @@
+pluginManagement {
+    includeBuild("build-logic")
+}
+
 rootProject.name = "kopring-bricks"
 
 include("http-client:vt-rest-client-autoconfigure")

@@ -1,36 +1,14 @@
 plugins {
-    `java-library`
-    `maven-publish`
-    kotlin("jvm")
-    kotlin("plugin.spring")
-    id("io.spring.dependency-management")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
-    }
+    id("kopring.kotlin-autoconfigure-conventions")
 }
 
 dependencies {
     api(project(":web:problem-details-autoconfigure"))
-    api("org.springframework.boot:spring-boot-webmvc")
-    api("org.springframework:spring-webmvc")
-    api("org.slf4j:slf4j-api")
+    api(libs.spring.boot.webmvc)
+    api(libs.spring.webmvc)
+    api(libs.slf4j.api)
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-test")
-    testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
+    testImplementation(libs.spring.boot.starter.webmvc.test)
 }
 
 publishing {

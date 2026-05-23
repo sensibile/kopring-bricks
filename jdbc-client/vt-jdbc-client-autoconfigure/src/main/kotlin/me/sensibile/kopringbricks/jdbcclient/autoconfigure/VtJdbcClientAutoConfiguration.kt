@@ -46,7 +46,7 @@ class VtJdbcClientAutoConfiguration {
         )
 
     @Bean
-    @ConditionalOnBean(JdbcClient::class)
+    @ConditionalOnBean(value = [JdbcClient::class], name = ["kopringBricksJdbcExecutor"])
     @ConditionalOnMissingBean
     @ConditionalOnProperty(
         prefix = "kopring.bricks.jdbc-client",

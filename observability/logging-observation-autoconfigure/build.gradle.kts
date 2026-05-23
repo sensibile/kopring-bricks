@@ -1,40 +1,18 @@
 plugins {
-    `java-library`
-    `maven-publish`
-    kotlin("jvm")
-    kotlin("plugin.spring")
-    id("io.spring.dependency-management")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
-    }
+    id("kopring.kotlin-autoconfigure-conventions")
 }
 
 dependencies {
-    api("org.springframework.boot:spring-boot")
-    api("org.springframework.boot:spring-boot-autoconfigure")
-    api("org.springframework.boot:spring-boot-restclient")
-    api("org.springframework:spring-web")
-    api("org.slf4j:slf4j-api")
+    api(libs.spring.boot)
+    api(libs.spring.boot.autoconfigure)
+    api(libs.spring.boot.restclient)
+    api(libs.spring.web)
+    api(libs.slf4j.api)
 
-    compileOnly("jakarta.servlet:jakarta.servlet-api")
+    compileOnly(libs.jakarta.servlet.api)
 
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-
-    testImplementation("jakarta.servlet:jakarta.servlet-api")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
-    testImplementation("org.springframework.boot:spring-boot-test")
-    testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
+    testImplementation(libs.jakarta.servlet.api)
+    testImplementation(libs.spring.boot.starter.webmvc.test)
 }
 
 publishing {

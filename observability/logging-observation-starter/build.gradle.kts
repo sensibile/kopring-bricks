@@ -1,23 +1,10 @@
 plugins {
-    `java-library`
-    `maven-publish`
-    id("io.spring.dependency-management")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
-    }
+    id("kopring.starter-conventions")
 }
 
 dependencies {
     api(project(":observability:logging-observation-autoconfigure"))
-    api("org.springframework.boot:spring-boot-starter-logging")
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
+    api(libs.spring.boot.starter.logging)
 }
 
 publishing {

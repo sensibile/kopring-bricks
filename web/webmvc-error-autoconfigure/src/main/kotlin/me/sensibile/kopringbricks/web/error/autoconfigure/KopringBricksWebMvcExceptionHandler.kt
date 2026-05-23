@@ -53,6 +53,7 @@ class KopringBricksWebMvcExceptionHandler(
     @ExceptionHandler(ApiException::class)
     fun handleApiException(ex: ApiException): ResponseEntity<ProblemDetail> {
         val problem = ex.body
+        problem.setProperty(problemDetailsProperties.codePropertyName, ex.code)
         enrich(problem)
 
         return ResponseEntity.status(ex.statusCode).headers(ex.headers).body(problem)

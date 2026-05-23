@@ -1,23 +1,10 @@
 plugins {
-    `java-library`
-    `maven-publish`
-    id("io.spring.dependency-management")
-}
-
-dependencyManagement {
-    imports {
-        mavenBom(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES)
-    }
+    id("kopring.starter-conventions")
 }
 
 dependencies {
     api(project(":cache:caffeine-cache-autoconfigure"))
-    api("org.springframework.boot:spring-boot-starter-cache")
-}
-
-java {
-    withSourcesJar()
-    withJavadocJar()
+    api(libs.spring.boot.starter.cache)
 }
 
 publishing {

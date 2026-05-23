@@ -45,6 +45,17 @@ class VtJdbcClientAutoConfigurationTests {
     }
 
     @Test
+    fun `does not create virtual thread operations when executor is disabled`() {
+        contextRunner
+            .withPropertyValues("kopring.bricks.jdbc-client.virtual-threads.enabled=false")
+            .run { context ->
+                assertThat(context).hasSingleBean(JdbcClient::class.java)
+                assertThat(context).doesNotHaveBean(ExecutorService::class.java)
+                assertThat(context).doesNotHaveBean(VtJdbcClientOperations::class.java)
+            }
+    }
+
+    @Test
     fun `can disable auto configuration`() {
         contextRunner
             .withPropertyValues("kopring.bricks.jdbc-client.enabled=false")
