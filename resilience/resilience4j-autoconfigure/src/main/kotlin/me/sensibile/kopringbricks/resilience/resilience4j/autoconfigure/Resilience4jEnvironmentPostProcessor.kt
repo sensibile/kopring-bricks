@@ -7,41 +7,24 @@ import org.springframework.core.env.ConfigurableEnvironment
 import org.springframework.core.env.MapPropertySource
 
 class Resilience4jEnvironmentPostProcessor : EnvironmentPostProcessor {
-
-    override fun postProcessEnvironment(environment: ConfigurableEnvironment, application: SpringApplication) {
-        val properties = Binder.get(environment)
-            .bind(PREFIX, Resilience4jProperties::class.java)
-            .orElseGet { Resilience4jProperties() }
+    override fun postProcessEnvironment(
+        environment: ConfigurableEnvironment,
+        application: SpringApplication,
+    ) {
+        val properties =
+            Binder
+                .get(environment)
+                .bind(PREFIX, Resilience4jProperties::class.java)
+                .orElseGet { Resilience4jProperties() }
 
         if (!properties.enabled) {
             return
         }
 
         val defaults = linkedMapOf<String, Any>()
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.sliding-window-type", properties.circuitBreaker.slidingWindowType)
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.sliding-window-size", properties.circuitBreaker.slidingWindowSize)
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.minimum-number-of-calls", properties.circuitBreaker.minimumNumberOfCalls)
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.failure-rate-threshold", properties.circuitBreaker.failureRateThreshold)
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.slow-call-rate-threshold", properties.circuitBreaker.slowCallRateThreshold)
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.slow-call-duration-threshold", properties.circuitBreaker.slowCallDurationThreshold)
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.wait-duration-in-open-state", properties.circuitBreaker.waitDurationInOpenState)
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.permitted-number-of-calls-in-half-open-state", properties.circuitBreaker.permittedNumberOfCallsInHalfOpenState)
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.automatic-transition-from-open-to-half-open-enabled", properties.circuitBreaker.automaticTransitionFromOpenToHalfOpenEnabled)
-        putIfMissing(defaults, environment, "resilience4j.retry.configs.default.max-attempts", properties.retry.maxAttempts)
-        putIfMissing(defaults, environment, "resilience4j.retry.configs.default.wait-duration", properties.retry.waitDuration)
-        putIfMissing(defaults, environment, "resilience4j.retry.configs.default.enable-exponential-backoff", properties.retry.enableExponentialBackoff)
-        putIfMissing(defaults, environment, "resilience4j.retry.configs.default.exponential-backoff-multiplier", properties.retry.exponentialBackoffMultiplier)
-        putIfMissing(defaults, environment, "resilience4j.timelimiter.configs.default.timeout-duration", properties.timeLimiter.timeoutDuration)
-        putIfMissing(defaults, environment, "resilience4j.timelimiter.configs.default.cancel-running-future", properties.timeLimiter.cancelRunningFuture)
-        putIfMissing(defaults, environment, "resilience4j.bulkhead.configs.default.max-concurrent-calls", properties.bulkhead.maxConcurrentCalls)
-        putIfMissing(defaults, environment, "resilience4j.bulkhead.configs.default.max-wait-duration", properties.bulkhead.maxWaitDuration)
-        putIfMissing(defaults, environment, "resilience4j.ratelimiter.configs.default.limit-for-period", properties.rateLimiter.limitForPeriod)
-        putIfMissing(defaults, environment, "resilience4j.ratelimiter.configs.default.limit-refresh-period", properties.rateLimiter.limitRefreshPeriod)
-        putIfMissing(defaults, environment, "resilience4j.ratelimiter.configs.default.timeout-duration", properties.rateLimiter.timeoutDuration)
-        putIfMissing(defaults, environment, "management.health.circuitbreakers.enabled", properties.health.circuitBreakersEnabled)
-        putIfMissing(defaults, environment, "management.health.ratelimiters.enabled", properties.health.rateLimitersEnabled)
-        putIfMissing(defaults, environment, "resilience4j.circuitbreaker.configs.default.register-health-indicator", properties.health.circuitBreakersEnabled)
-        putIfMissing(defaults, environment, "resilience4j.ratelimiter.configs.default.register-health-indicator", properties.health.rateLimitersEnabled)
+        defaultProperties(properties).forEach { (propertyName, value) ->
+            putIfMissing(defaults, environment, propertyName, value)
+        }
 
         if (defaults.isNotEmpty()) {
             environment.propertySources.addLast(
@@ -63,5 +46,43 @@ class Resilience4jEnvironmentPostProcessor : EnvironmentPostProcessor {
 
     private companion object {
         private const val PREFIX = "kopring.bricks.resilience4j"
+        private const val CIRCUIT_BREAKER = "resilience4j.circuitbreaker.configs.default"
+        private const val RETRY = "resilience4j.retry.configs.default"
+        private const val TIME_LIMITER = "resilience4j.timelimiter.configs.default"
+        private const val BULKHEAD = "resilience4j.bulkhead.configs.default"
+        private const val RATE_LIMITER = "resilience4j.ratelimiter.configs.default"
+        private const val MANAGEMENT_HEALTH = "management.health"
+
+        private fun defaultProperties(properties: Resilience4jProperties): List<Pair<String, Any>> =
+            listOf(
+                "$CIRCUIT_BREAKER.sliding-window-type" to properties.circuitBreaker.slidingWindowType,
+                "$CIRCUIT_BREAKER.sliding-window-size" to properties.circuitBreaker.slidingWindowSize,
+                "$CIRCUIT_BREAKER.minimum-number-of-calls" to properties.circuitBreaker.minimumNumberOfCalls,
+                "$CIRCUIT_BREAKER.failure-rate-threshold" to properties.circuitBreaker.failureRateThreshold,
+                "$CIRCUIT_BREAKER.slow-call-rate-threshold" to properties.circuitBreaker.slowCallRateThreshold,
+                "$CIRCUIT_BREAKER.slow-call-duration-threshold" to
+                    properties.circuitBreaker.slowCallDurationThreshold,
+                "$CIRCUIT_BREAKER.wait-duration-in-open-state" to
+                    properties.circuitBreaker.waitDurationInOpenState,
+                "$CIRCUIT_BREAKER.permitted-number-of-calls-in-half-open-state" to
+                    properties.circuitBreaker.permittedNumberOfCallsInHalfOpenState,
+                "$CIRCUIT_BREAKER.automatic-transition-from-open-to-half-open-enabled" to
+                    properties.circuitBreaker.automaticTransitionFromOpenToHalfOpenEnabled,
+                "$RETRY.max-attempts" to properties.retry.maxAttempts,
+                "$RETRY.wait-duration" to properties.retry.waitDuration,
+                "$RETRY.enable-exponential-backoff" to properties.retry.enableExponentialBackoff,
+                "$RETRY.exponential-backoff-multiplier" to properties.retry.exponentialBackoffMultiplier,
+                "$TIME_LIMITER.timeout-duration" to properties.timeLimiter.timeoutDuration,
+                "$TIME_LIMITER.cancel-running-future" to properties.timeLimiter.cancelRunningFuture,
+                "$BULKHEAD.max-concurrent-calls" to properties.bulkhead.maxConcurrentCalls,
+                "$BULKHEAD.max-wait-duration" to properties.bulkhead.maxWaitDuration,
+                "$RATE_LIMITER.limit-for-period" to properties.rateLimiter.limitForPeriod,
+                "$RATE_LIMITER.limit-refresh-period" to properties.rateLimiter.limitRefreshPeriod,
+                "$RATE_LIMITER.timeout-duration" to properties.rateLimiter.timeoutDuration,
+                "$MANAGEMENT_HEALTH.circuitbreakers.enabled" to properties.health.circuitBreakersEnabled,
+                "$MANAGEMENT_HEALTH.ratelimiters.enabled" to properties.health.rateLimitersEnabled,
+                "$CIRCUIT_BREAKER.register-health-indicator" to properties.health.circuitBreakersEnabled,
+                "$RATE_LIMITER.register-health-indicator" to properties.health.rateLimitersEnabled,
+            )
     }
 }

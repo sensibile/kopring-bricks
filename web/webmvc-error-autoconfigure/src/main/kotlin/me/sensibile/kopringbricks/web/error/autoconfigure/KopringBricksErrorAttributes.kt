@@ -2,7 +2,6 @@ package me.sensibile.kopringbricks.web.error.autoconfigure
 
 import me.sensibile.kopringbricks.web.problem.autoconfigure.ApiException
 import me.sensibile.kopringbricks.web.problem.autoconfigure.ProblemDetailsProperties
-
 import org.slf4j.MDC
 import org.springframework.boot.web.error.ErrorAttributeOptions
 import org.springframework.boot.webmvc.error.DefaultErrorAttributes
@@ -12,7 +11,6 @@ class KopringBricksErrorAttributes(
     private val problemDetailsProperties: ProblemDetailsProperties,
     private val webMvcErrorProperties: WebMvcErrorProperties,
 ) : DefaultErrorAttributes() {
-
     override fun getErrorAttributes(
         webRequest: WebRequest,
         options: ErrorAttributeOptions,
@@ -42,9 +40,19 @@ class KopringBricksErrorAttributes(
     private fun resolveCode(attributes: Map<String, Any>): String {
         val status = attributes["status"] as? Int
         return when (status) {
-            in 400..499 -> "HTTP_$status"
-            in 500..599 -> webMvcErrorProperties.internalErrorCode
+            in CLIENT_ERROR_STATUS_RANGE -> "HTTP_$status"
+            in SERVER_ERROR_STATUS_RANGE -> webMvcErrorProperties.internalErrorCode
             else -> "HTTP_ERROR"
         }
+    }
+
+    private companion object {
+        private const val CLIENT_ERROR_STATUS_MIN = 400
+        private const val CLIENT_ERROR_STATUS_MAX = 499
+        private const val SERVER_ERROR_STATUS_MIN = 500
+        private const val SERVER_ERROR_STATUS_MAX = 599
+
+        private val CLIENT_ERROR_STATUS_RANGE = CLIENT_ERROR_STATUS_MIN..CLIENT_ERROR_STATUS_MAX
+        private val SERVER_ERROR_STATUS_RANGE = SERVER_ERROR_STATUS_MIN..SERVER_ERROR_STATUS_MAX
     }
 }

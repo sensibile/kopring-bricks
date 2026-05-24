@@ -1,5 +1,0 @@
-style:
-  MaxLineLength:
-    active: false
-  MagicNumber:
-    active: false

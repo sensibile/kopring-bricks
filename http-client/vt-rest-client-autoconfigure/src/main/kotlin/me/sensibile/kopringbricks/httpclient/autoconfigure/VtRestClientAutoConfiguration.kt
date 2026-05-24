@@ -1,9 +1,5 @@
 package me.sensibile.kopringbricks.httpclient.autoconfigure
 
-import java.net.http.HttpClient
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -17,13 +13,20 @@ import org.springframework.context.annotation.Bean
 import org.springframework.http.client.ClientHttpRequestFactory
 import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.web.client.RestClient
+import java.net.http.HttpClient
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 @AutoConfiguration
 @ConditionalOnClass(RestClient::class, HttpClient::class, JdkClientHttpRequestFactory::class)
-@ConditionalOnProperty(prefix = "kopring.bricks.http-client", name = ["enabled"], havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(
+    prefix = "kopring.bricks.http-client",
+    name = ["enabled"],
+    havingValue = "true",
+    matchIfMissing = true,
+)
 @EnableConfigurationProperties(VtRestClientProperties::class)
 class VtRestClientAutoConfiguration {
-
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnMissingBean(name = ["kopringBricksHttpClientExecutor"])
     @ConditionalOnProperty(
@@ -34,7 +37,8 @@ class VtRestClientAutoConfiguration {
     )
     fun kopringBricksHttpClientExecutor(properties: VtRestClientProperties): ExecutorService =
         Executors.newThreadPerTaskExecutor(
-            Thread.ofVirtual()
+            Thread
+                .ofVirtual()
                 .name(properties.virtualThreads.threadNamePrefix, 0)
                 .factory(),
         )
@@ -45,15 +49,17 @@ class VtRestClientAutoConfiguration {
         properties: VtRestClientProperties,
         @Qualifier("kopringBricksHttpClientExecutor") executor: ObjectProvider<ExecutorService>,
     ): HttpClient {
-        val builder = HttpClient.newBuilder()
-            .connectTimeout(properties.connectTimeout)
-            .followRedirects(
-                if (properties.followRedirects) {
-                    HttpClient.Redirect.NORMAL
-                } else {
-                    HttpClient.Redirect.NEVER
-                },
-            )
+        val builder =
+            HttpClient
+                .newBuilder()
+                .connectTimeout(properties.connectTimeout)
+                .followRedirects(
+                    if (properties.followRedirects) {
+                        HttpClient.Redirect.NORMAL
+                    } else {
+                        HttpClient.Redirect.NEVER
+                    },
+                )
 
         executor.ifAvailable(builder::executor)
 
@@ -72,9 +78,7 @@ class VtRestClientAutoConfiguration {
         }
 
     @Bean
-    fun kopringBricksRestClientCustomizer(
-        requestFactory: ClientHttpRequestFactory,
-    ): RestClientCustomizer =
+    fun kopringBricksRestClientCustomizer(requestFactory: ClientHttpRequestFactory): RestClientCustomizer =
         RestClientCustomizer { builder ->
             builder.requestFactory(requestFactory)
         }
@@ -85,6 +89,5 @@ class VtRestClientAutoConfiguration {
     fun kopringBricksRestClientFactory(
         builder: RestClient.Builder,
         properties: VtRestClientProperties,
-    ): VtRestClientFactory =
-        VtRestClientFactory(builder, properties)
+    ): VtRestClientFactory = VtRestClientFactory(builder, properties)
 }
