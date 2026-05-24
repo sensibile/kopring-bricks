@@ -21,6 +21,8 @@ Use it as factual source material when updating human-authored documentation.
 - `cache:caffeine-cache-starter` (starter)
 - `resilience:resilience4j-autoconfigure` (autoconfigure)
 - `resilience:resilience4j-starter` (starter)
+- `audit:audit-log-autoconfigure` (autoconfigure)
+- `audit:audit-log-starter` (starter)
 - `samples:todo-api` (sample)
 
 ## Starter Pairs
@@ -33,6 +35,7 @@ Use it as factual source material when updating human-authored documentation.
 - `web:webmvc-error-starter` -> `web:webmvc-error-autoconfigure`
 - `cache:caffeine-cache-starter` -> `cache:caffeine-cache-autoconfigure`
 - `resilience:resilience4j-starter` -> `resilience:resilience4j-autoconfigure`
+- `audit:audit-log-starter` -> `audit:audit-log-autoconfigure`
 
 ## Auto Configurations
 
@@ -97,6 +100,13 @@ AutoConfiguration classes:
 EnvironmentPostProcessor classes:
 - `me.sensibile.kopringbricks.resilience.resilience4j.autoconfigure.Resilience4jEnvironmentPostProcessor`
 
+### `audit:audit-log-autoconfigure`
+
+AutoConfiguration classes:
+- `me.sensibile.kopringbricks.auditlog.autoconfigure.AuditLogAutoConfiguration`
+
+EnvironmentPostProcessor classes:
+
 ## Configuration Properties
 
 ### `http-client:vt-rest-client-autoconfigure`
@@ -130,6 +140,10 @@ EnvironmentPostProcessor classes:
 ### `resilience:resilience4j-autoconfigure`
 
 - `kopring.bricks.resilience4j` -> `Resilience4jProperties` (resilience/resilience4j-autoconfigure/src/main/kotlin/me/sensibile/kopringbricks/resilience/resilience4j/autoconfigure/Resilience4jProperties.kt)
+
+### `audit:audit-log-autoconfigure`
+
+- `kopring.bricks.audit-log` -> `AuditLogProperties` (audit/audit-log-autoconfigure/src/main/kotlin/me/sensibile/kopringbricks/auditlog/autoconfigure/AuditLogProperties.kt)
 
 ## Dependencies
 
@@ -238,6 +252,19 @@ EnvironmentPostProcessor classes:
 - `api(libs.resilience4j.micrometer)`
 - `testImplementation(libs.spring.boot.starter.test)`
 - `testRuntimeOnly(libs.junit.platform.launcher)`
+
+### `audit:audit-log-autoconfigure`
+
+- `api(libs.spring.boot)`
+- `api(libs.spring.boot.autoconfigure)`
+- `api(libs.spring.jdbc)`
+- `api(libs.slf4j.api)`
+- `testImplementation(libs.spring.boot.starter.jdbc)`
+
+### `audit:audit-log-starter`
+
+- `api(project(":audit:audit-log-autoconfigure"))`
+- `api(libs.spring.boot.starter.jdbc)`
 
 ### `samples:todo-api`
 
