@@ -600,6 +600,15 @@ scripts/new-starter.sh messaging kafka-producer \
 
 Use `--dry-run` to preview the generated files and `settings.gradle.kts` includes.
 
+Regenerate project facts for AI-assisted README updates:
+
+```bash
+scripts/docs-facts.sh
+scripts/docs-facts.sh --check
+```
+
+Use `docs/generated/project-facts.md` as factual source material and `docs/prompts/update-readme.md` as the update prompt.
+
 ## Publishing
 
 Local verification:

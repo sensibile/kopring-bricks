@@ -35,3 +35,11 @@ depends = ["lint:ktlint", "lint:detekt"]
 [tasks."new-starter"]
 description = "Create a new autoconfigure/starter module pair"
 run = "scripts/new-starter.sh"
+
+[tasks."docs:facts"]
+description = "Generate factual project documentation for AI-assisted docs updates"
+run = "scripts/docs-facts.sh"
+
+[tasks."docs:facts:check"]
+description = "Check generated project documentation facts"
+run = "scripts/docs-facts.sh --check"
