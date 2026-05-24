@@ -27,6 +27,8 @@ cache/
 resilience/
   resilience4j-autoconfigure
   resilience4j-starter
+samples/
+  todo-api
 ```
 
 `*-autoconfigure` 모듈은 실제 auto-configuration을 제공하고, `*-starter` 모듈은 애플리케이션에서 가져다 쓰는 starter 의존성입니다.
@@ -548,6 +550,14 @@ class GithubService(
 
 ```bash
 ./gradlew test
+```
+
+## Samples
+
+`samples:todo-api` is a small Spring Boot Todo API that applies the starters in a consumer application.
+
+```bash
+./gradlew :samples:todo-api:test
 ```
 
 ## Development Setup

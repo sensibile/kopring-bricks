@@ -18,13 +18,15 @@ subprojects {
         mavenCentral()
     }
 
-    plugins.withId("org.jetbrains.kotlin.jvm") {
+    plugins.withId("java") {
         extensions.configure<JavaPluginExtension> {
             toolchain {
                 languageVersion = JavaLanguageVersion.of(24)
             }
         }
+    }
 
+    plugins.withId("org.jetbrains.kotlin.jvm") {
         extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
             compilerOptions {
                 freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")

@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.restclient.RestClientCustomizer
+import org.springframework.boot.restclient.autoconfigure.RestClientAutoConfiguration
 import org.springframework.context.annotation.Bean
 import org.springframework.http.client.ClientHttpRequestFactory
 import org.springframework.http.client.JdkClientHttpRequestFactory
@@ -17,7 +18,7 @@ import java.net.http.HttpClient
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-@AutoConfiguration
+@AutoConfiguration(after = [RestClientAutoConfiguration::class])
 @ConditionalOnClass(RestClient::class, HttpClient::class, JdkClientHttpRequestFactory::class)
 @ConditionalOnProperty(
     prefix = "kopring.bricks.http-client",

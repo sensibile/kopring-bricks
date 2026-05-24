@@ -1,0 +1,8 @@
+kopring:
+  bricks:
+    caffeine-cache:
+      cache-names:
+        - todos
+    logging-observation:
+      json:
+        enabled: false

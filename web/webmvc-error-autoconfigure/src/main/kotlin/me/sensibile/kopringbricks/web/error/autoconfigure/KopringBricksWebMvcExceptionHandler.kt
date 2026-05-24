@@ -4,6 +4,8 @@ import me.sensibile.kopringbricks.web.problem.autoconfigure.ApiException
 import me.sensibile.kopringbricks.web.problem.autoconfigure.ProblemDetailFactory
 import me.sensibile.kopringbricks.web.problem.autoconfigure.ProblemDetailsProperties
 import org.slf4j.MDC
+import org.springframework.core.Ordered
+import org.springframework.core.annotation.Order
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatusCode
@@ -17,6 +19,7 @@ import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
 @RestControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
 class KopringBricksWebMvcExceptionHandler(
     private val problemDetailFactory: ProblemDetailFactory,
     private val problemDetailsProperties: ProblemDetailsProperties,
