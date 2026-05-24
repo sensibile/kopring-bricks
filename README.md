@@ -550,6 +550,34 @@ class GithubService(
 ./gradlew test
 ```
 
+## Development Setup
+
+This project uses `mise` for the JDK and detekt CLI, and Homebrew for ktlint.
+
+```bash
+scripts/bootstrap-dev.sh
+```
+
+Useful local tasks:
+
+```bash
+mise run test
+mise run lint:ktlint
+mise run format:ktlint
+mise run lint:detekt
+mise run lint
+```
+
+`format:ktlint` formats only changed Kotlin files by default.
+
+To enable the repository pre-commit hook:
+
+```bash
+scripts/bootstrap-dev.sh --install-hooks
+```
+
+The hook runs `mise run lint`, which checks changed Kotlin files with ktlint and runs detekt.
+
 ## Publishing
 
 Local verification:
