@@ -31,3 +31,7 @@ run = "scripts/detekt.sh"
 [tasks.lint]
 description = "Run local Kotlin quality checks"
 depends = ["lint:ktlint", "lint:detekt"]
+
+[tasks."new-starter"]
+description = "Create a new autoconfigure/starter module pair"
+run = "scripts/new-starter.sh"

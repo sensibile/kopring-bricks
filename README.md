@@ -578,6 +578,18 @@ scripts/bootstrap-dev.sh --install-hooks
 
 The hook runs `mise run lint`, which checks changed Kotlin files with ktlint and runs detekt.
 
+Create a new starter module pair:
+
+```bash
+scripts/new-starter.sh messaging kafka-producer \
+  --package-segment messaging.kafka \
+  --class-prefix KafkaProducer \
+  --display-name "Kafka Producer" \
+  --description "Kafka producer defaults for Spring applications"
+```
+
+Use `--dry-run` to preview the generated files and `settings.gradle.kts` includes.
+
 ## Publishing
 
 Local verification:
