@@ -241,6 +241,7 @@ EnvironmentPostProcessor classes:
 
 ### `samples:todo-api`
 
+- `implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))`
 - `implementation(project(":cache:caffeine-cache-starter"))`
 - `implementation(project(":http-client:vt-rest-client-starter"))`
 - `implementation(project(":observability:logging-observation-starter"))`
