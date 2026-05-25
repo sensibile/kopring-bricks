@@ -188,12 +188,12 @@ class UserQueryService(
 
 ## Audit Log
 
-`audit-log-starter`는 애플리케이션의 관리 작업, 룰 변경, 설정 변경처럼 추적이 필요한 이벤트를 표준 `AuditEventPublisher` API로 남길 수 있게 합니다. `JdbcClient`가 있으면 PostgreSQL JSONB 테이블에 저장하는 JDBC 저장소를 기본으로 구성하고, 없으면 logging 저장소로 내려갑니다.
+`audit-log-starter`는 애플리케이션의 관리 작업, 룰 변경, 설정 변경처럼 추적이 필요한 이벤트를 표준 `AuditEventPublisher` API로 남길 수 있게 합니다. `JdbcClient`가 있고 PostgreSQL datasource로 감지되면 JSONB 테이블에 저장하는 JDBC 저장소를 기본으로 구성하고, 그 외에는 logging 저장소로 내려갑니다.
 
 기본 동작:
 
 - `AuditEventPublisher`와 `AuditEventRepository` 자동 구성
-- `JdbcClient`가 있으면 `JdbcAuditEventRepository` 구성
+- `JdbcClient`가 있고 PostgreSQL datasource로 감지되면 `JdbcAuditEventRepository` 구성
 - 저장소가 없으면 `LoggingAuditEventRepository` 구성
 - 앱에서 `AuditEventRepository` 또는 `AuditEventPublisher` Bean을 등록하면 기본 구현 back off
 - 저장 실패는 기본적으로 애플리케이션 요청을 실패시키지 않음
@@ -228,7 +228,10 @@ kopring:
         fail-on-error: false
       jdbc:
         table-name: audit_log
+        dialect: auto
 ```
+
+`jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.audit-log.jdbc.dialect=postgresql`을 명시하세요.
 
 PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/audit-log/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 자동 실행하지는 않습니다.
 

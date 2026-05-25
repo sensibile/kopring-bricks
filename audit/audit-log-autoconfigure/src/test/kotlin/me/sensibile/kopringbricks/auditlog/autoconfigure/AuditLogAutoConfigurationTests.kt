@@ -24,13 +24,38 @@ class AuditLogAutoConfigurationTests {
     }
 
     @Test
-    fun `creates jdbc repository when jdbc client is available`() {
+    fun `creates jdbc repository when datasource url is postgresql`() {
         contextRunner
             .withBean(JdbcClient::class.java, Supplier { mock(JdbcClient::class.java) })
+            .withPropertyValues("spring.datasource.url=jdbc:postgresql://localhost:5432/app")
             .run { context ->
                 assertThat(context).hasSingleBean(AuditEventRepository::class.java)
                 assertThat(context).hasSingleBean(JdbcAuditEventRepository::class.java)
                 assertThat(context).doesNotHaveBean(LoggingAuditEventRepository::class.java)
+            }
+    }
+
+    @Test
+    fun `creates jdbc repository when dialect is explicitly postgresql`() {
+        contextRunner
+            .withBean(JdbcClient::class.java, Supplier { mock(JdbcClient::class.java) })
+            .withPropertyValues("kopring.bricks.audit-log.jdbc.dialect=postgresql")
+            .run { context ->
+                assertThat(context).hasSingleBean(AuditEventRepository::class.java)
+                assertThat(context).hasSingleBean(JdbcAuditEventRepository::class.java)
+                assertThat(context).doesNotHaveBean(LoggingAuditEventRepository::class.java)
+            }
+    }
+
+    @Test
+    fun `uses logging repository when datasource url is not postgresql`() {
+        contextRunner
+            .withBean(JdbcClient::class.java, Supplier { mock(JdbcClient::class.java) })
+            .withPropertyValues("spring.datasource.url=jdbc:h2:mem:testdb")
+            .run { context ->
+                assertThat(context).hasSingleBean(AuditEventRepository::class.java)
+                assertThat(context).hasSingleBean(LoggingAuditEventRepository::class.java)
+                assertThat(context).doesNotHaveBean(JdbcAuditEventRepository::class.java)
             }
     }
 

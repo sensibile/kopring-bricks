@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Conditional
 import org.springframework.jdbc.core.simple.JdbcClient
 import javax.sql.DataSource
 
@@ -22,6 +23,7 @@ class AuditLogAutoConfiguration {
     @Bean
     @ConditionalOnClass(DataSource::class, JdbcClient::class)
     @ConditionalOnBean(JdbcClient::class)
+    @Conditional(AuditLogJdbcCondition::class)
     @ConditionalOnMissingBean(AuditEventRepository::class)
     fun jdbcAuditEventRepository(
         jdbcClient: JdbcClient,

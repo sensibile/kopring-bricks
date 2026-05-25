@@ -14,5 +14,11 @@ data class AuditLogProperties(
 
     data class Jdbc(
         val tableName: String = "audit_log",
+        val dialect: AuditLogJdbcDialect = AuditLogJdbcDialect.AUTO,
     )
+}
+
+enum class AuditLogJdbcDialect {
+    AUTO,
+    POSTGRESQL,
 }

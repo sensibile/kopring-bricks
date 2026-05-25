@@ -257,6 +257,7 @@ EnvironmentPostProcessor classes:
 
 - `api(libs.spring.boot)`
 - `api(libs.spring.boot.autoconfigure)`
+- `api(libs.spring.boot.jdbc)`
 - `api(libs.spring.jdbc)`
 - `api(libs.slf4j.api)`
 - `testImplementation(libs.spring.boot.starter.jdbc)`
