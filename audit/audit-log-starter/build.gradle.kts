@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     api(project(":audit:audit-log-autoconfigure"))
-    api(libs.spring.boot.starter.jdbc)
 }
 
 publishing {

@@ -198,6 +198,8 @@ class UserQueryService(
 - 앱에서 `AuditEventRepository` 또는 `AuditEventPublisher` Bean을 등록하면 기본 구현 back off
 - 저장 실패는 기본적으로 애플리케이션 요청을 실패시키지 않음
 
+`audit-log-starter`는 logging-only 사용을 막지 않기 위해 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
+
 ### Installation
 
 ```kotlin
@@ -214,6 +216,8 @@ repositories {
 
 dependencies {
     implementation("me.sensibile:audit-log-starter:0.0.1-SNAPSHOT")
+    // Optional, when using the PostgreSQL JDBC-backed repository:
+    // implementation("org.springframework.boot:spring-boot-starter-jdbc")
 }
 ```
 

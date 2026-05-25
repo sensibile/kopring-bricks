@@ -60,6 +60,22 @@ class AuditLogAutoConfigurationTests {
     }
 
     @Test
+    fun `rejects invalid jdbc table name`() {
+        contextRunner
+            .withBean(JdbcClient::class.java, Supplier { mock(JdbcClient::class.java) })
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:postgresql://localhost:5432/app",
+                "kopring.bricks.audit-log.jdbc.table-name=audit_log; drop table users",
+            ).run { context ->
+                assertThat(context).hasFailed()
+                assertThat(context.startupFailure)
+                    .hasRootCauseInstanceOf(IllegalArgumentException::class.java)
+                    .rootCause()
+                    .hasMessageContaining("kopring.bricks.audit-log.jdbc.tableName")
+            }
+    }
+
+    @Test
     fun `backs off when custom repository is registered`() {
         contextRunner
             .withBean(AuditEventRepository::class.java, Supplier { StubAuditEventRepository() })

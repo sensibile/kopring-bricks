@@ -265,7 +265,6 @@ EnvironmentPostProcessor classes:
 ### `audit:audit-log-starter`
 
 - `api(project(":audit:audit-log-autoconfigure"))`
-- `api(libs.spring.boot.starter.jdbc)`
 
 ### `samples:todo-api`
 
