@@ -15,6 +15,7 @@ Use `kopring-bricks` when an application needs one of the existing opinionated S
 - `webmvc-error-starter` for opinionated Web MVC error handling.
 - `caffeine-cache-starter` for Caffeine cache defaults.
 - `resilience4j-starter` for Resilience4j defaults.
+- `audit-log-starter` for audit event publishing and JDBC-backed audit log storage.
 
 Prefer starter modules in applications. Autoconfigure modules are library internals unless an application has a specific reason to depend on them directly.
 
@@ -25,6 +26,7 @@ Prefer starter modules in applications. Autoconfigure modules are library intern
 3. Configure `kopring.bricks.*` properties in application configuration.
 4. Write at least one application-level integration test for the behavior the app relies on.
 5. If the app reveals a missing library capability, open an issue in `kopring-bricks` instead of patching around it in the app.
+6. Use `audit-log-starter` for admin actions, configuration changes, rule changes, approval decisions, and other events that need an operator-visible trail.
 
 ## Gradle Example
 

@@ -1,0 +1,153 @@
+package me.sensibile.kopringbricks.auditlog.autoconfigure
+
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.mockito.Mockito.mock
+import org.springframework.boot.test.context.runner.ApplicationContextRunner
+import org.springframework.jdbc.core.simple.JdbcClient
+import java.util.function.Supplier
+import kotlin.test.Test
+
+class AuditLogAutoConfigurationTests {
+    private val contextRunner =
+        ApplicationContextRunner()
+            .withUserConfiguration(AuditLogAutoConfiguration::class.java)
+
+    @Test
+    fun `creates logging repository and publisher without jdbc client`() {
+        contextRunner.run { context ->
+            assertThat(context).hasSingleBean(AuditLogProperties::class.java)
+            assertThat(context).hasSingleBean(AuditEventRepository::class.java)
+            assertThat(context).hasSingleBean(AuditEventPublisher::class.java)
+            assertThat(context).hasSingleBean(LoggingAuditEventRepository::class.java)
+        }
+    }
+
+    @Test
+    fun `creates jdbc repository when datasource url is postgresql`() {
+        contextRunner
+            .withBean(JdbcClient::class.java, Supplier { mock(JdbcClient::class.java) })
+            .withPropertyValues("spring.datasource.url=jdbc:postgresql://localhost:5432/app")
+            .run { context ->
+                assertThat(context).hasSingleBean(AuditEventRepository::class.java)
+                assertThat(context).hasSingleBean(JdbcAuditEventRepository::class.java)
+                assertThat(context).doesNotHaveBean(LoggingAuditEventRepository::class.java)
+            }
+    }
+
+    @Test
+    fun `creates jdbc repository when dialect is explicitly postgresql`() {
+        contextRunner
+            .withBean(JdbcClient::class.java, Supplier { mock(JdbcClient::class.java) })
+            .withPropertyValues("kopring.bricks.audit-log.jdbc.dialect=postgresql")
+            .run { context ->
+                assertThat(context).hasSingleBean(AuditEventRepository::class.java)
+                assertThat(context).hasSingleBean(JdbcAuditEventRepository::class.java)
+                assertThat(context).doesNotHaveBean(LoggingAuditEventRepository::class.java)
+            }
+    }
+
+    @Test
+    fun `uses logging repository when datasource url is not postgresql`() {
+        contextRunner
+            .withBean(JdbcClient::class.java, Supplier { mock(JdbcClient::class.java) })
+            .withPropertyValues("spring.datasource.url=jdbc:h2:mem:testdb")
+            .run { context ->
+                assertThat(context).hasSingleBean(AuditEventRepository::class.java)
+                assertThat(context).hasSingleBean(LoggingAuditEventRepository::class.java)
+                assertThat(context).doesNotHaveBean(JdbcAuditEventRepository::class.java)
+            }
+    }
+
+    @Test
+    fun `rejects invalid jdbc table name`() {
+        contextRunner
+            .withBean(JdbcClient::class.java, Supplier { mock(JdbcClient::class.java) })
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:postgresql://localhost:5432/app",
+                "kopring.bricks.audit-log.jdbc.table-name=audit_log; drop table users",
+            ).run { context ->
+                assertThat(context).hasFailed()
+                assertThat(context.startupFailure)
+                    .hasRootCauseInstanceOf(IllegalArgumentException::class.java)
+                    .rootCause()
+                    .hasMessageContaining("kopring.bricks.audit-log.jdbc.tableName")
+            }
+    }
+
+    @Test
+    fun `backs off when custom repository is registered`() {
+        contextRunner
+            .withBean(AuditEventRepository::class.java, Supplier { StubAuditEventRepository() })
+            .run { context ->
+                assertThat(context).hasSingleBean(AuditEventRepository::class.java)
+                assertThat(context).hasSingleBean(StubAuditEventRepository::class.java)
+                assertThat(context).doesNotHaveBean(LoggingAuditEventRepository::class.java)
+                assertThat(context).doesNotHaveBean(JdbcAuditEventRepository::class.java)
+            }
+    }
+
+    @Test
+    fun `backs off when custom publisher is registered`() {
+        contextRunner
+            .withBean(AuditEventPublisher::class.java, Supplier { StubAuditEventPublisher() })
+            .run { context ->
+                assertThat(context).hasSingleBean(AuditEventPublisher::class.java)
+                assertThat(context).hasSingleBean(StubAuditEventPublisher::class.java)
+            }
+    }
+
+    @Test
+    fun `can disable auto configuration`() {
+        contextRunner
+            .withPropertyValues("kopring.bricks.audit-log.enabled=false")
+            .run { context ->
+                assertThat(context).doesNotHaveBean(AuditLogProperties::class.java)
+                assertThat(context).doesNotHaveBean(AuditEventRepository::class.java)
+                assertThat(context).doesNotHaveBean(AuditEventPublisher::class.java)
+            }
+    }
+
+    @Test
+    fun `publisher ignores repository failure by default`() {
+        val publisher =
+            DefaultAuditEventPublisher(
+                FailingAuditEventRepository(),
+                AuditLogProperties(),
+            )
+
+        publisher.publish(auditEvent())
+    }
+
+    @Test
+    fun `publisher can rethrow repository failure`() {
+        val publisher =
+            DefaultAuditEventPublisher(
+                FailingAuditEventRepository(),
+                AuditLogProperties(publisher = AuditLogProperties.Publisher(failOnError = true)),
+            )
+
+        assertThatThrownBy { publisher.publish(auditEvent()) }
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessage("audit repository failure")
+    }
+
+    private fun auditEvent(): AuditEvent =
+        AuditEvent(
+            actor = AuditActor(type = "user", id = "user-1"),
+            action = "todo.created",
+            target = AuditTarget(type = "todo", id = "todo-1"),
+        )
+
+    private class StubAuditEventRepository : AuditEventRepository {
+        override fun save(event: AuditEvent) = Unit
+    }
+
+    private class StubAuditEventPublisher : AuditEventPublisher {
+        override fun publish(event: AuditEvent) = Unit
+    }
+
+    private class FailingAuditEventRepository : AuditEventRepository {
+        override fun save(event: AuditEvent): Unit = throw IllegalStateException("audit repository failure")
+    }
+}

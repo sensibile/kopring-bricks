@@ -27,6 +27,9 @@ cache/
 resilience/
   resilience4j-autoconfigure
   resilience4j-starter
+audit/
+  audit-log-autoconfigure
+  audit-log-starter
 samples/
   todo-api
 ```
@@ -180,6 +183,85 @@ class UserQueryService(
                 .query(Int::class.java)
                 .single()
         }
+}
+```
+
+## Audit Log
+
+`audit-log-starter`는 애플리케이션의 관리 작업, 룰 변경, 설정 변경처럼 추적이 필요한 이벤트를 표준 `AuditEventPublisher` API로 남길 수 있게 합니다. `JdbcClient`가 있고 PostgreSQL datasource로 감지되면 JSONB 테이블에 저장하는 JDBC 저장소를 기본으로 구성하고, 그 외에는 logging 저장소로 내려갑니다.
+
+기본 동작:
+
+- `AuditEventPublisher`와 `AuditEventRepository` 자동 구성
+- `JdbcClient`가 있고 PostgreSQL datasource로 감지되면 `JdbcAuditEventRepository` 구성
+- 저장소가 없으면 `LoggingAuditEventRepository` 구성
+- 앱에서 `AuditEventRepository` 또는 `AuditEventPublisher` Bean을 등록하면 기본 구현 back off
+- 저장 실패는 기본적으로 애플리케이션 요청을 실패시키지 않음
+
+`audit-log-starter`는 logging-only 사용을 막지 않기 위해 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
+
+### Installation
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/sensibile/kopring-bricks")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation("me.sensibile:audit-log-starter:0.0.1-SNAPSHOT")
+    // Optional, when using the PostgreSQL JDBC-backed repository:
+    // implementation("org.springframework.boot:spring-boot-starter-jdbc")
+}
+```
+
+### Configuration
+
+```yaml
+kopring:
+  bricks:
+    audit-log:
+      enabled: true
+      publisher:
+        fail-on-error: false
+      jdbc:
+        table-name: audit_log
+        dialect: auto
+```
+
+`jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.audit-log.jdbc.dialect=postgresql`을 명시하세요.
+
+PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/audit-log/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 자동 실행하지는 않습니다.
+
+### Publishing Events
+
+```kotlin
+import me.sensibile.kopringbricks.auditlog.autoconfigure.AuditActor
+import me.sensibile.kopringbricks.auditlog.autoconfigure.AuditEvent
+import me.sensibile.kopringbricks.auditlog.autoconfigure.AuditEventPublisher
+import me.sensibile.kopringbricks.auditlog.autoconfigure.AuditTarget
+import org.springframework.stereotype.Service
+
+@Service
+class FeatureRuleService(
+    private val auditEvents: AuditEventPublisher,
+) {
+    fun enableRule(ruleId: String, actorId: String) {
+        auditEvents.publish(
+            AuditEvent(
+                actor = AuditActor(type = "user", id = actorId),
+                action = "feature-rule.enabled",
+                target = AuditTarget(type = "feature-rule", id = ruleId),
+                afterStateJson = """{"enabled":true}""",
+            ),
+        )
+    }
 }
 ```
 
