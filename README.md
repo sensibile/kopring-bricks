@@ -19,6 +19,8 @@ observability/
 web/
   problem-details-autoconfigure
   problem-details-starter
+  concurrency-control-autoconfigure
+  concurrency-control-starter
   webmvc-error-autoconfigure
   webmvc-error-starter
 cache/
@@ -183,6 +185,88 @@ class UserQueryService(
                 .query(Int::class.java)
                 .single()
         }
+}
+```
+
+## Concurrency Control
+
+`concurrency-control-starter`는 관리 API와 룰 변경 API에서 반복되는 optimistic concurrency control primitives를 제공합니다. `If-Match` 기반 버전 검증, ETag 생성, idempotency key 추출, 표준 `ApiException` 기반 409/412/428 예외를 제공합니다.
+
+기본 동작:
+
+- `ETagGenerator` 자동 구성
+- `IfMatchValidator` 자동 구성
+- `IdempotencyKeyResolver` 자동 구성
+- `VersionConflictException`으로 `409 Conflict` 표현
+- `PreconditionFailedException`으로 `412 Precondition Failed` 표현
+- `PreconditionRequiredException`으로 `428 Precondition Required` 표현
+- `IdempotencyConflictException`으로 idempotency key 충돌 표현
+
+### Installation
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/sensibile/kopring-bricks")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation("me.sensibile:concurrency-control-starter:0.0.1-SNAPSHOT")
+    implementation("me.sensibile:webmvc-error-starter:0.0.1-SNAPSHOT")
+}
+```
+
+### Configuration
+
+```yaml
+kopring:
+  bricks:
+    concurrency-control:
+      enabled: true
+      etag:
+        strong: true
+      idempotency:
+        header-name: Idempotency-Key
+```
+
+### If-Match Validation
+
+```kotlin
+import me.sensibile.kopringbricks.web.concurrency.autoconfigure.IfMatchValidator
+import me.sensibile.kopringbricks.web.concurrency.autoconfigure.ETagGenerator
+import org.springframework.http.HttpHeaders
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RestController
+
+@RestController
+class FeatureRuleController(
+    private val rules: FeatureRuleService,
+    private val etags: ETagGenerator,
+    private val ifMatchValidator: IfMatchValidator,
+) {
+    @PutMapping("/feature-rules/{id}")
+    fun update(
+        @PathVariable id: String,
+        @RequestHeader(name = HttpHeaders.IF_MATCH, required = false) ifMatch: String?,
+    ): ResponseEntity<FeatureRuleResponse> {
+        val current = rules.get(id)
+        ifMatchValidator.requireMatch(ifMatch, current.version)
+
+        val updated = rules.update(id)
+
+        return ResponseEntity.ok()
+            .eTag(etags.generate(updated.version))
+            .body(FeatureRuleResponse.from(updated))
+    }
 }
 ```
 

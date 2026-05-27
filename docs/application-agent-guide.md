@@ -12,6 +12,7 @@ Use `kopring-bricks` when an application needs one of the existing opinionated S
 - `logging-observation-starter` for structured logging, request correlation, and outbound `RestClient` propagation.
 - `micrometer-tracing-starter` for Micrometer Tracing and OpenTelemetry defaults.
 - `problem-details-starter` for Spring `ProblemDetail` primitives and defaults.
+- `concurrency-control-starter` for ETag, `If-Match`, version conflict, and idempotency conflict primitives.
 - `webmvc-error-starter` for opinionated Web MVC error handling.
 - `caffeine-cache-starter` for Caffeine cache defaults.
 - `resilience4j-starter` for Resilience4j defaults.
@@ -27,6 +28,7 @@ Prefer starter modules in applications. Autoconfigure modules are library intern
 4. Write at least one application-level integration test for the behavior the app relies on.
 5. If the app reveals a missing library capability, open an issue in `kopring-bricks` instead of patching around it in the app.
 6. Use `audit-log-starter` for admin actions, configuration changes, rule changes, approval decisions, and other events that need an operator-visible trail.
+7. Use `concurrency-control-starter` for admin or rule APIs that update versioned resources and must reject stale writes.
 
 ## Gradle Example
 

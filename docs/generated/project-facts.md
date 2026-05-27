@@ -15,6 +15,8 @@ Use it as factual source material when updating human-authored documentation.
 - `observability:micrometer-tracing-starter` (starter)
 - `web:problem-details-autoconfigure` (autoconfigure)
 - `web:problem-details-starter` (starter)
+- `web:concurrency-control-autoconfigure` (autoconfigure)
+- `web:concurrency-control-starter` (starter)
 - `web:webmvc-error-autoconfigure` (autoconfigure)
 - `web:webmvc-error-starter` (starter)
 - `cache:caffeine-cache-autoconfigure` (autoconfigure)
@@ -32,6 +34,7 @@ Use it as factual source material when updating human-authored documentation.
 - `observability:logging-observation-starter` -> `observability:logging-observation-autoconfigure`
 - `observability:micrometer-tracing-starter` -> `observability:micrometer-tracing-autoconfigure`
 - `web:problem-details-starter` -> `web:problem-details-autoconfigure`
+- `web:concurrency-control-starter` -> `web:concurrency-control-autoconfigure`
 - `web:webmvc-error-starter` -> `web:webmvc-error-autoconfigure`
 - `cache:caffeine-cache-starter` -> `cache:caffeine-cache-autoconfigure`
 - `resilience:resilience4j-starter` -> `resilience:resilience4j-autoconfigure`
@@ -76,6 +79,13 @@ AutoConfiguration classes:
 
 EnvironmentPostProcessor classes:
 - `me.sensibile.kopringbricks.web.problem.autoconfigure.ProblemDetailsEnvironmentPostProcessor`
+
+### `web:concurrency-control-autoconfigure`
+
+AutoConfiguration classes:
+- `me.sensibile.kopringbricks.web.concurrency.autoconfigure.ConcurrencyControlAutoConfiguration`
+
+EnvironmentPostProcessor classes:
 
 ### `web:webmvc-error-autoconfigure`
 
@@ -128,6 +138,10 @@ EnvironmentPostProcessor classes:
 ### `web:problem-details-autoconfigure`
 
 - `kopring.bricks.problem-details` -> `ProblemDetailsProperties` (web/problem-details-autoconfigure/src/main/kotlin/me/sensibile/kopringbricks/web/problem/autoconfigure/ProblemDetailsProperties.kt)
+
+### `web:concurrency-control-autoconfigure`
+
+- `kopring.bricks.concurrency-control` -> `ConcurrencyControlProperties` (web/concurrency-control-autoconfigure/src/main/kotlin/me/sensibile/kopringbricks/web/concurrency/autoconfigure/ConcurrencyControlProperties.kt)
 
 ### `web:webmvc-error-autoconfigure`
 
@@ -212,6 +226,17 @@ EnvironmentPostProcessor classes:
 ### `web:problem-details-starter`
 
 - `api(project(":web:problem-details-autoconfigure"))`
+
+### `web:concurrency-control-autoconfigure`
+
+- `api(project(":web:problem-details-autoconfigure"))`
+- `api(libs.spring.boot)`
+- `api(libs.spring.boot.autoconfigure)`
+- `api(libs.spring.web)`
+
+### `web:concurrency-control-starter`
+
+- `api(project(":web:concurrency-control-autoconfigure"))`
 
 ### `web:webmvc-error-autoconfigure`
 
