@@ -32,6 +32,9 @@ resilience/
 audit/
   audit-log-autoconfigure
   audit-log-starter
+messaging/
+  outbox-autoconfigure
+  outbox-starter
 samples/
   todo-api
 ```
@@ -266,6 +269,89 @@ class FeatureRuleController(
         return ResponseEntity.ok()
             .eTag(etags.generate(updated.version))
             .body(FeatureRuleResponse.from(updated))
+    }
+}
+```
+
+## Outbox
+
+`outbox-starter`는 도메인 상태 변경과 외부 이벤트 발행 사이의 트랜잭션 간극을 줄이기 위한 transactional outbox 저장소 계약을 제공합니다. PostgreSQL datasource와 `JdbcClient`가 있으면 JDBC 저장소를 기본으로 구성하고, 그 외에는 logging 저장소로 내려갑니다.
+
+기본 동작:
+
+- `OutboxEventRepository` 자동 구성
+- `OutboxEventAppender` 자동 구성
+- PostgreSQL datasource로 감지되면 `JdbcOutboxEventRepository` 구성
+- 저장소가 없으면 `LoggingOutboxEventRepository` 구성
+- 앱에서 `OutboxEventRepository` Bean을 등록하면 기본 구현 back off
+- polling publisher는 이번 starter의 계약 위에 앱 또는 후속 adapter가 구현
+
+`outbox-starter`는 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
+
+### Installation
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/sensibile/kopring-bricks")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation("me.sensibile:outbox-starter:0.0.1-SNAPSHOT")
+    // Optional, when using the PostgreSQL JDBC-backed repository:
+    // implementation("org.springframework.boot:spring-boot-starter-jdbc")
+}
+```
+
+### Configuration
+
+```yaml
+kopring:
+  bricks:
+    outbox:
+      enabled: true
+      jdbc:
+        table-name: outbox_event
+        dialect: auto
+      polling:
+        claim-limit: 100
+        claim-timeout: 5m
+```
+
+`jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.outbox.jdbc.dialect=postgresql`을 명시하세요.
+
+PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/outbox/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 자동 실행하지는 않습니다.
+
+### Appending Events
+
+```kotlin
+import me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxEvent
+import me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxEventAppender
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
+@Service
+class FeatureRuleService(
+    private val rules: FeatureRuleRepository,
+    private val outbox: OutboxEventAppender,
+) {
+    @Transactional
+    fun enable(ruleId: String) {
+        rules.enable(ruleId)
+        outbox.append(
+            OutboxEvent(
+                aggregateType = "feature-rule",
+                aggregateId = ruleId,
+                eventType = "feature-rule.enabled",
+                payloadJson = """{"enabled":true}""",
+            ),
+        )
     }
 }
 ```

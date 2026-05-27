@@ -25,6 +25,8 @@ Use it as factual source material when updating human-authored documentation.
 - `resilience:resilience4j-starter` (starter)
 - `audit:audit-log-autoconfigure` (autoconfigure)
 - `audit:audit-log-starter` (starter)
+- `messaging:outbox-autoconfigure` (autoconfigure)
+- `messaging:outbox-starter` (starter)
 - `samples:todo-api` (sample)
 
 ## Starter Pairs
@@ -39,6 +41,7 @@ Use it as factual source material when updating human-authored documentation.
 - `cache:caffeine-cache-starter` -> `cache:caffeine-cache-autoconfigure`
 - `resilience:resilience4j-starter` -> `resilience:resilience4j-autoconfigure`
 - `audit:audit-log-starter` -> `audit:audit-log-autoconfigure`
+- `messaging:outbox-starter` -> `messaging:outbox-autoconfigure`
 
 ## Auto Configurations
 
@@ -117,6 +120,13 @@ AutoConfiguration classes:
 
 EnvironmentPostProcessor classes:
 
+### `messaging:outbox-autoconfigure`
+
+AutoConfiguration classes:
+- `me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxAutoConfiguration`
+
+EnvironmentPostProcessor classes:
+
 ## Configuration Properties
 
 ### `http-client:vt-rest-client-autoconfigure`
@@ -158,6 +168,10 @@ EnvironmentPostProcessor classes:
 ### `audit:audit-log-autoconfigure`
 
 - `kopring.bricks.audit-log` -> `AuditLogProperties` (audit/audit-log-autoconfigure/src/main/kotlin/me/sensibile/kopringbricks/auditlog/autoconfigure/AuditLogProperties.kt)
+
+### `messaging:outbox-autoconfigure`
+
+- `kopring.bricks.outbox` -> `OutboxProperties` (messaging/outbox-autoconfigure/src/main/kotlin/me/sensibile/kopringbricks/messaging/outbox/autoconfigure/OutboxProperties.kt)
 
 ## Dependencies
 
@@ -290,6 +304,19 @@ EnvironmentPostProcessor classes:
 ### `audit:audit-log-starter`
 
 - `api(project(":audit:audit-log-autoconfigure"))`
+
+### `messaging:outbox-autoconfigure`
+
+- `api(libs.spring.boot)`
+- `api(libs.spring.boot.autoconfigure)`
+- `api(libs.spring.boot.jdbc)`
+- `api(libs.spring.jdbc)`
+- `api(libs.slf4j.api)`
+- `testImplementation(libs.spring.boot.starter.jdbc)`
+
+### `messaging:outbox-starter`
+
+- `api(project(":messaging:outbox-autoconfigure"))`
 
 ### `samples:todo-api`
 
