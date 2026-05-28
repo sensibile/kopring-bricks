@@ -1,5 +1,6 @@
 package me.sensibile.kopringbricks.messaging.outbox.autoconfigure
 
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -9,6 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Conditional
 import org.springframework.jdbc.core.simple.JdbcClient
+import java.time.Clock
 import javax.sql.DataSource
 
 @AutoConfiguration
@@ -41,6 +43,28 @@ class OutboxAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     fun outboxAppender(repository: OutboxEventRepository): OutboxEventAppender = OutboxEventAppender(repository)
+
+    @Bean
+    @ConditionalOnMissingBean
+    fun outboxRetryPolicy(properties: OutboxProperties): OutboxRetryPolicy = OutboxRetryPolicy(properties)
+
+    @Bean
+    @ConditionalOnBean(OutboxEventPublisher::class)
+    @ConditionalOnMissingBean
+    fun outboxPollingService(
+        repository: OutboxEventRepository,
+        publisher: OutboxEventPublisher,
+        retryPolicy: OutboxRetryPolicy,
+        properties: OutboxProperties,
+        clock: ObjectProvider<Clock>,
+    ): OutboxPollingService =
+        OutboxPollingService(
+            repository,
+            publisher,
+            retryPolicy,
+            properties,
+            clock.getIfAvailable { Clock.systemUTC() },
+        )
 }
 
 private fun String.requireSqlIdentifier(propertyName: String): String {

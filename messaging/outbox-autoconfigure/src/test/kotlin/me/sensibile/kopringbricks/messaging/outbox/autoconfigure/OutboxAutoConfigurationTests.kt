@@ -19,7 +19,10 @@ class OutboxAutoConfigurationTests {
             assertThat(context).hasSingleBean(OutboxProperties::class.java)
             assertThat(context).hasSingleBean(OutboxEventRepository::class.java)
             assertThat(context).hasSingleBean(OutboxEventAppender::class.java)
+            assertThat(context).hasSingleBean(OutboxRetryPolicy::class.java)
             assertThat(context).hasSingleBean(LoggingOutboxEventRepository::class.java)
+            assertThat(context).doesNotHaveBean(OutboxEventPublisher::class.java)
+            assertThat(context).doesNotHaveBean(OutboxPollingService::class.java)
         }
     }
 
@@ -72,6 +75,17 @@ class OutboxAutoConfigurationTests {
     }
 
     @Test
+    fun `creates polling service when custom publisher is registered`() {
+        contextRunner
+            .withBean(OutboxEventPublisher::class.java, Supplier { StubOutboxEventPublisher() })
+            .run { context ->
+                assertThat(context).hasSingleBean(OutboxEventPublisher::class.java)
+                assertThat(context).hasSingleBean(StubOutboxEventPublisher::class.java)
+                assertThat(context).hasSingleBean(OutboxPollingService::class.java)
+            }
+    }
+
+    @Test
     fun `can disable auto configuration`() {
         contextRunner
             .withPropertyValues("kopring.bricks.outbox.enabled=false")
@@ -79,6 +93,7 @@ class OutboxAutoConfigurationTests {
                 assertThat(context).doesNotHaveBean(OutboxProperties::class.java)
                 assertThat(context).doesNotHaveBean(OutboxEventRepository::class.java)
                 assertThat(context).doesNotHaveBean(OutboxEventAppender::class.java)
+                assertThat(context).doesNotHaveBean(OutboxPollingService::class.java)
             }
     }
 
@@ -141,5 +156,9 @@ class OutboxAutoConfigurationTests {
             error: String,
             nextAttemptAt: Instant,
         ) = Unit
+    }
+
+    private class StubOutboxEventPublisher : OutboxEventPublisher {
+        override fun publish(event: OutboxEvent) = Unit
     }
 }
