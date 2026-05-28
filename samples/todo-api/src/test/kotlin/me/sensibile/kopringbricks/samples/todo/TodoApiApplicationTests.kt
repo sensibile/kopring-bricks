@@ -91,16 +91,8 @@ class TodoApiApplicationTests {
                 jsonPath("$.version") { value(1) }
             }
 
-        val etag =
-            mockMvc
-                .get("/todos/1")
-                .andExpect {
-                    status { isOk() }
-                    header { string(HttpHeaders.ETAG, "\"1\"") }
-                }.andReturn()
-                .response
-                .getHeader(HttpHeaders.ETAG)
-                .let(::requireNotNull)
+        val etag = todoEtag(id = 1)
+        assertThat(etag).isEqualTo("\"1\"")
 
         mockMvc
             .patch("/todos/1/complete") {
@@ -126,13 +118,7 @@ class TodoApiApplicationTests {
     fun `records audit and outbox events for todo changes`() {
         createTodo("publish sample")
 
-        val etag =
-            mockMvc
-                .get("/todos/1")
-                .andReturn()
-                .response
-                .getHeader(HttpHeaders.ETAG)
-                .let(::requireNotNull)
+        val etag = todoEtag(id = 1)
 
         mockMvc
             .patch("/todos/1/complete") {
@@ -229,6 +215,17 @@ class TodoApiApplicationTests {
             }.andExpect {
                 status { isCreated() }
             }.andReturn()
+
+    private fun todoEtag(id: Long): String =
+        mockMvc
+            .get("/todos/$id")
+            .andExpect {
+                status { isOk() }
+                header { exists(HttpHeaders.ETAG) }
+            }.andReturn()
+            .response
+            .getHeader(HttpHeaders.ETAG)
+            .let(::requireNotNull)
 
     @TestConfiguration
     class TestSupportConfiguration {
