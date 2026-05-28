@@ -17,6 +17,7 @@ Use `kopring-bricks` when an application needs one of the existing opinionated S
 - `caffeine-cache-starter` for Caffeine cache defaults.
 - `resilience4j-starter` for Resilience4j defaults.
 - `audit-log-starter` for audit event publishing and JDBC-backed audit log storage.
+- `outbox-starter` for transactional outbox event storage contracts and PostgreSQL-backed persistence.
 
 Prefer starter modules in applications. Autoconfigure modules are library internals unless an application has a specific reason to depend on them directly.
 
@@ -29,6 +30,7 @@ Prefer starter modules in applications. Autoconfigure modules are library intern
 5. If the app reveals a missing library capability, open an issue in `kopring-bricks` instead of patching around it in the app.
 6. Use `audit-log-starter` for admin actions, configuration changes, rule changes, approval decisions, and other events that need an operator-visible trail.
 7. Use `concurrency-control-starter` for admin or rule APIs that update versioned resources and must reject stale writes.
+8. Use `outbox-starter` when a state change must be durably recorded before an external publisher, cache invalidator, or webhook adapter sends it.
 
 ## Gradle Example
 
