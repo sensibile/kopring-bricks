@@ -23,6 +23,15 @@ class InMemoryOutboxEventRepository : OutboxEventRepository {
         limit: Int,
         now: Instant,
         claimTimeout: Duration,
+    ): List<OutboxEvent> =
+        synchronized(eventsById) {
+            claimPendingLocked(limit, now, claimTimeout)
+        }
+
+    private fun claimPendingLocked(
+        limit: Int,
+        now: Instant,
+        claimTimeout: Duration,
     ): List<OutboxEvent> {
         require(limit > 0) { "claim limit must be greater than zero" }
 
