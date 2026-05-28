@@ -1,5 +1,6 @@
 package me.sensibile.kopringbricks.samples.todo
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import me.sensibile.kopringbricks.httpclient.autoconfigure.VtRestClientFactory
 import me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxPollingService
 import me.sensibile.kopringbricks.testsupport.audit.RecordingAuditEventPublisher
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Primary
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.MvcResult
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.patch
 import org.springframework.test.web.servlet.post
@@ -54,6 +56,9 @@ class TodoApiApplicationTests {
 
     @Autowired
     private lateinit var outboxPollingService: OutboxPollingService
+
+    @Autowired
+    private lateinit var objectMapper: ObjectMapper
 
     @BeforeEach
     fun resetState() {
@@ -119,13 +124,7 @@ class TodoApiApplicationTests {
 
     @Test
     fun `records audit and outbox events for todo changes`() {
-        mockMvc
-            .post("/todos") {
-                contentType = MediaType.APPLICATION_JSON
-                content = """{"title":"publish sample"}"""
-            }.andExpect {
-                status { isCreated() }
-            }
+        createTodo("publish sample")
 
         val etag =
             mockMvc
@@ -152,6 +151,23 @@ class TodoApiApplicationTests {
                 assertThat(outboxPublisher.events.map { it.eventType })
                     .containsExactly("todo.created", "todo.completed")
             },
+        )
+    }
+
+    @Test
+    fun `serializes audit and outbox payloads with json escaping`() {
+        val title = "quoted \"todo\" with newline\nand backspace\b"
+
+        createTodo(title)
+
+        val auditMetadata = requireNotNull(auditEvents.events.single().metadataJson)
+        val outboxPayload = outboxRepository.events.single().payloadJson
+
+        assertAll(
+            { assertThat(auditMetadata).contains("""\"todo\"""") },
+            { assertThat(auditMetadata).contains("""\n""") },
+            { assertThat(auditMetadata).contains("""\b""") },
+            { assertThat(outboxPayload).isEqualTo(auditMetadata) },
         )
     }
 
@@ -204,6 +220,15 @@ class TodoApiApplicationTests {
                 jsonPath("$.violations[0].field") { value("title") }
             }
     }
+
+    private fun createTodo(title: String): MvcResult =
+        mockMvc
+            .post("/todos") {
+                contentType = MediaType.APPLICATION_JSON
+                content = objectMapper.writeValueAsString(mapOf("title" to title))
+            }.andExpect {
+                status { isCreated() }
+            }.andReturn()
 
     @TestConfiguration
     class TestSupportConfiguration {

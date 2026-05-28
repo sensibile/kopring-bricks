@@ -1,5 +1,6 @@
 package me.sensibile.kopringbricks.samples.todo
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import me.sensibile.kopringbricks.auditlog.autoconfigure.AuditActor
 import me.sensibile.kopringbricks.auditlog.autoconfigure.AuditEvent
 import me.sensibile.kopringbricks.auditlog.autoconfigure.AuditEventPublisher
@@ -17,6 +18,7 @@ class TodoService(
     private val auditEvents: AuditEventPublisher,
     private val outbox: OutboxEventAppender,
     private val ifMatchValidator: IfMatchValidator,
+    private val objectMapper: ObjectMapper,
 ) {
     fun list(): List<Todo> = repository.findAll()
 
@@ -80,26 +82,7 @@ class TodoService(
         )
     }
 
-    private fun todoJson(todo: Todo): String =
-        """
-        {"id":${todo.id},"title":${todo.title.jsonString()},"completed":${todo.completed},"version":${todo.version}}
-        """.trimIndent()
-
-    private fun String.jsonString(): String =
-        buildString {
-            append('"')
-            this@jsonString.forEach { character ->
-                when (character) {
-                    '\\' -> append("\\\\")
-                    '"' -> append("\\\"")
-                    '\n' -> append("\\n")
-                    '\r' -> append("\\r")
-                    '\t' -> append("\\t")
-                    else -> append(character)
-                }
-            }
-            append('"')
-        }
+    private fun todoJson(todo: Todo): String = objectMapper.writeValueAsString(todo)
 
     private companion object {
         private const val TODO_TARGET_TYPE = "todo"

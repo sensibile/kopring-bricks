@@ -16,6 +16,7 @@ dependencies {
     implementation(project(":web:concurrency-control-starter"))
     implementation(project(":web:webmvc-error-starter"))
 
+    implementation(libs.jackson.databind)
     implementation(libs.spring.boot.starter.validation)
 
     testImplementation(project(":test-support:kopring-bricks-test-support"))
