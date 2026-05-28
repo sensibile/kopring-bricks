@@ -35,11 +35,14 @@ audit/
 messaging/
   outbox-autoconfigure
   outbox-starter
+test-support/
+  kopring-bricks-test-support
 samples/
   todo-api
 ```
 
 `*-autoconfigure` 모듈은 실제 auto-configuration을 제공하고, `*-starter` 모듈은 애플리케이션에서 가져다 쓰는 starter 의존성입니다.
+`kopring-bricks-test-support`는 starter를 소비하는 애플리케이션 테스트에서 쓰는 recording/fake helper를 제공합니다.
 
 애플리케이션 개발 에이전트가 이 라이브러리를 소비하거나 라이브러리 변경 요청을 넘겨야 할 때는 [Application Agent Guide](docs/application-agent-guide.md)를 참고하세요.
 
@@ -845,10 +848,24 @@ class GithubService(
 
 ## Samples
 
-`samples:todo-api` is a small Spring Boot Todo API that applies the starters in a consumer application.
+`samples:todo-api` is a small Spring Boot Todo API that applies the starters in a consumer application. It covers Web MVC error handling, caching, RestClient defaults, audit events, optimistic concurrency through ETags, and outbox event recording/publishing.
 
 ```bash
 ./gradlew :samples:todo-api:test
+```
+
+## Test Support
+
+`kopring-bricks-test-support` provides small test doubles for application tests that consume the starters:
+
+- `RecordingAuditEventPublisher`
+- `InMemoryOutboxEventRepository`
+- `RecordingOutboxEventPublisher`
+
+```kotlin
+dependencies {
+    testImplementation("me.sensibile:kopring-bricks-test-support:0.0.1-SNAPSHOT")
+}
 ```
 
 ## Development Setup
@@ -867,6 +884,7 @@ mise run lint:ktlint
 mise run format:ktlint
 mise run lint:detekt
 mise run lint
+mise run docs:check
 ```
 
 `format:ktlint` formats only changed Kotlin files by default.
@@ -896,9 +914,10 @@ Regenerate project facts for AI-assisted README updates:
 ```bash
 scripts/docs-facts.sh
 scripts/docs-facts.sh --check
+scripts/docs-coverage-check.sh
 ```
 
-Use `docs/generated/project-facts.md` as factual source material and `docs/prompts/update-readme.md` as the update prompt.
+Use `docs/generated/project-facts.md` as factual source material and `docs/prompts/update-readme.md` as the update prompt. `mise run docs:check` verifies generated facts and checks that starter/test-support modules are mentioned in README and the application agent guide.
 
 ## Publishing
 

@@ -19,6 +19,7 @@ class TodoRepository {
                 id = idSequence.incrementAndGet(),
                 title = title,
                 completed = false,
+                version = INITIAL_VERSION,
             )
         todos[todo.id] = todo
         return todo
@@ -26,8 +27,22 @@ class TodoRepository {
 
     fun complete(id: Long): Todo {
         val existing = todos[id] ?: throw TodoNotFoundException(id)
-        val completed = existing.copy(completed = true)
+        val completed =
+            existing.copy(
+                completed = true,
+                version = existing.version + VERSION_INCREMENT,
+            )
         todos[id] = completed
         return completed
+    }
+
+    fun clear() {
+        todos.clear()
+        idSequence.set(0)
+    }
+
+    private companion object {
+        private const val INITIAL_VERSION = 1L
+        private const val VERSION_INCREMENT = 1L
     }
 }

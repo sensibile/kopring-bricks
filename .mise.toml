@@ -43,3 +43,11 @@ run = "scripts/docs-facts.sh"
 [tasks."docs:facts:check"]
 description = "Check generated project documentation facts"
 run = "scripts/docs-facts.sh --check"
+
+[tasks."docs:coverage"]
+description = "Check starter and test-support module references in docs"
+run = "scripts/docs-coverage-check.sh"
+
+[tasks."docs:check"]
+description = "Run documentation consistency checks"
+depends = ["docs:facts:check", "docs:coverage"]

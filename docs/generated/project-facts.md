@@ -27,6 +27,7 @@ Use it as factual source material when updating human-authored documentation.
 - `audit:audit-log-starter` (starter)
 - `messaging:outbox-autoconfigure` (autoconfigure)
 - `messaging:outbox-starter` (starter)
+- `test-support:kopring-bricks-test-support` (test-support)
 - `samples:todo-api` (sample)
 
 ## Starter Pairs
@@ -318,6 +319,11 @@ EnvironmentPostProcessor classes:
 
 - `api(project(":messaging:outbox-autoconfigure"))`
 
+### `test-support:kopring-bricks-test-support`
+
+- `api(project(":audit:audit-log-autoconfigure"))`
+- `api(project(":messaging:outbox-autoconfigure"))`
+
 ### `samples:todo-api`
 
 - `implementation(platform(org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES))`
@@ -325,8 +331,12 @@ EnvironmentPostProcessor classes:
 - `implementation(project(":http-client:vt-rest-client-starter"))`
 - `implementation(project(":observability:logging-observation-starter"))`
 - `implementation(project(":resilience:resilience4j-starter"))`
+- `implementation(project(":audit:audit-log-starter"))`
+- `implementation(project(":messaging:outbox-starter"))`
+- `implementation(project(":web:concurrency-control-starter"))`
 - `implementation(project(":web:webmvc-error-starter"))`
 - `implementation(libs.spring.boot.starter.validation)`
+- `testImplementation(project(":test-support:kopring-bricks-test-support"))`
 - `testImplementation(libs.spring.boot.starter.webmvc.test)`
 - `testImplementation(libs.spring.boot.starter.test)`
 - `testImplementation(libs.kotlin.test.junit5)`
