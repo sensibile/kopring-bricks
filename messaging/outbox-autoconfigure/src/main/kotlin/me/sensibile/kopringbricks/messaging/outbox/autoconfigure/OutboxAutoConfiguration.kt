@@ -1,6 +1,7 @@
 package me.sensibile.kopringbricks.messaging.outbox.autoconfigure
 
 import org.springframework.beans.factory.ObjectProvider
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -10,6 +11,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Conditional
 import org.springframework.jdbc.core.simple.JdbcClient
+import org.springframework.scheduling.TaskScheduler
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import java.time.Clock
 import javax.sql.DataSource
 
@@ -65,6 +68,39 @@ class OutboxAutoConfiguration {
             properties,
             clock.getIfAvailable { Clock.systemUTC() },
         )
+
+    @Bean(OUTBOX_TASK_SCHEDULER_BEAN_NAME)
+    @ConditionalOnClass(TaskScheduler::class, ThreadPoolTaskScheduler::class)
+    @ConditionalOnBean(OutboxPollingService::class)
+    @ConditionalOnProperty(
+        prefix = "kopring.bricks.outbox.scheduler",
+        name = ["enabled"],
+        havingValue = "true",
+    )
+    @ConditionalOnMissingBean(
+        value = [OutboxScheduler::class],
+        name = [OUTBOX_TASK_SCHEDULER_BEAN_NAME],
+    )
+    fun outboxTaskScheduler(properties: OutboxProperties): ThreadPoolTaskScheduler =
+        ThreadPoolTaskScheduler().apply {
+            poolSize = properties.scheduler.poolSize.coerceAtLeast(MIN_SCHEDULER_POOL_SIZE)
+            setThreadNamePrefix(properties.scheduler.threadNamePrefix)
+        }
+
+    @Bean
+    @ConditionalOnClass(TaskScheduler::class)
+    @ConditionalOnBean(OutboxPollingService::class)
+    @ConditionalOnProperty(
+        prefix = "kopring.bricks.outbox.scheduler",
+        name = ["enabled"],
+        havingValue = "true",
+    )
+    @ConditionalOnMissingBean(OutboxScheduler::class)
+    fun outboxScheduler(
+        pollingService: OutboxPollingService,
+        @Qualifier(OUTBOX_TASK_SCHEDULER_BEAN_NAME) taskScheduler: TaskScheduler,
+        properties: OutboxProperties,
+    ): OutboxScheduler = DefaultOutboxScheduler(pollingService, taskScheduler, properties)
 }
 
 private fun String.requireSqlIdentifier(propertyName: String): String {
@@ -75,4 +111,6 @@ private fun String.requireSqlIdentifier(propertyName: String): String {
     return this
 }
 
+private const val OUTBOX_TASK_SCHEDULER_BEAN_NAME = "outboxTaskScheduler"
+private const val MIN_SCHEDULER_POOL_SIZE = 1
 private val SQL_IDENTIFIER = Regex("[A-Za-z_][A-Za-z0-9_]*")

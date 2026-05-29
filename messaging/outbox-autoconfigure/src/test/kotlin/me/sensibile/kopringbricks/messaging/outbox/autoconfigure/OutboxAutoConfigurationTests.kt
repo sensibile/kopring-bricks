@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.mockito.Mockito.mock
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.jdbc.core.simple.JdbcClient
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import java.time.Instant
 import java.util.function.Supplier
 import kotlin.test.Test
@@ -82,6 +83,47 @@ class OutboxAutoConfigurationTests {
                 assertThat(context).hasSingleBean(OutboxEventPublisher::class.java)
                 assertThat(context).hasSingleBean(StubOutboxEventPublisher::class.java)
                 assertThat(context).hasSingleBean(OutboxPollingService::class.java)
+                assertThat(context).doesNotHaveBean(OutboxScheduler::class.java)
+                assertThat(context).doesNotHaveBean(ThreadPoolTaskScheduler::class.java)
+            }
+    }
+
+    @Test
+    fun `creates scheduler when scheduler is enabled and publisher is registered`() {
+        contextRunner
+            .withBean(OutboxEventPublisher::class.java, Supplier { StubOutboxEventPublisher() })
+            .withPropertyValues("kopring.bricks.outbox.scheduler.enabled=true")
+            .run { context ->
+                assertThat(context).hasSingleBean(OutboxPollingService::class.java)
+                assertThat(context).hasSingleBean(OutboxScheduler::class.java)
+                assertThat(context).hasSingleBean(DefaultOutboxScheduler::class.java)
+                assertThat(context).hasSingleBean(ThreadPoolTaskScheduler::class.java)
+                assertThat(context).hasBean("outboxTaskScheduler")
+            }
+    }
+
+    @Test
+    fun `backs off when custom scheduler is registered`() {
+        contextRunner
+            .withBean(OutboxEventPublisher::class.java, Supplier { StubOutboxEventPublisher() })
+            .withBean(OutboxScheduler::class.java, Supplier { StubOutboxScheduler() })
+            .withPropertyValues("kopring.bricks.outbox.scheduler.enabled=true")
+            .run { context ->
+                assertThat(context).hasSingleBean(OutboxScheduler::class.java)
+                assertThat(context).hasSingleBean(StubOutboxScheduler::class.java)
+                assertThat(context).doesNotHaveBean(DefaultOutboxScheduler::class.java)
+                assertThat(context).doesNotHaveBean(ThreadPoolTaskScheduler::class.java)
+            }
+    }
+
+    @Test
+    fun `does not create scheduler without publisher`() {
+        contextRunner
+            .withPropertyValues("kopring.bricks.outbox.scheduler.enabled=true")
+            .run { context ->
+                assertThat(context).doesNotHaveBean(OutboxPollingService::class.java)
+                assertThat(context).doesNotHaveBean(OutboxScheduler::class.java)
+                assertThat(context).doesNotHaveBean(ThreadPoolTaskScheduler::class.java)
             }
     }
 
@@ -161,4 +203,6 @@ class OutboxAutoConfigurationTests {
     private class StubOutboxEventPublisher : OutboxEventPublisher {
         override fun publish(event: OutboxEvent) = Unit
     }
+
+    private class StubOutboxScheduler : OutboxScheduler
 }
