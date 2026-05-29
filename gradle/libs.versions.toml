@@ -39,6 +39,7 @@ spring-webmvc = { module = "org.springframework:spring-webmvc" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
 context-propagation = { module = "io.micrometer:context-propagation" }
 jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
 resilience4j-micrometer = { module = "io.github.resilience4j:resilience4j-micrometer", version.ref = "resilience4j" }
 resilience4j-spring-boot4 = { module = "io.github.resilience4j:resilience4j-spring-boot4", version.ref = "resilience4j" }

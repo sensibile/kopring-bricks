@@ -65,6 +65,9 @@ module_kind() {
     *-starter)
       printf 'starter'
       ;;
+    *-test-support)
+      printf 'test-support'
+      ;;
     *)
       printf 'sample'
       ;;
