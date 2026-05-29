@@ -285,9 +285,10 @@ class FeatureRuleController(
 - `OutboxEventRepository` 자동 구성
 - `OutboxEventAppender` 자동 구성
 - 앱이 `OutboxEventPublisher`를 제공하면 `OutboxPollingService` 자동 구성
+- `scheduler.enabled=true`이고 `OutboxPollingService`가 있으면 `OutboxScheduler` 자동 구성
 - PostgreSQL datasource로 감지되면 `JdbcOutboxEventRepository` 구성
 - 저장소가 없으면 `LoggingOutboxEventRepository` 구성
-- 앱에서 `OutboxEventRepository` Bean을 등록하면 기본 저장소 구현 back off
+- 앱에서 `OutboxEventRepository` 또는 `OutboxScheduler` Bean을 등록하면 기본 구현 back off
 
 `outbox-starter`는 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
 
@@ -329,6 +330,12 @@ kopring:
         initial-delay: 5s
         max-delay: 5m
         multiplier: 2
+      scheduler:
+        enabled: false
+        initial-delay: 0s
+        fixed-delay: 1s
+        pool-size: 1
+        thread-name-prefix: kopring-bricks-outbox-
 ```
 
 `jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.outbox.jdbc.dialect=postgresql`을 명시하세요.
@@ -378,23 +385,7 @@ class FeatureRuleOutboxPublisher : OutboxEventPublisher {
 }
 ```
 
-```kotlin
-import me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxPollingService
-import org.springframework.scheduling.annotation.Scheduled
-import org.springframework.stereotype.Component
-
-@Component
-class OutboxScheduler(
-    private val outbox: OutboxPollingService,
-) {
-    @Scheduled(fixedDelayString = "\${app.outbox.poll-delay:PT1S}")
-    fun publishPendingEvents() {
-        outbox.poll()
-    }
-}
-```
-
-`OutboxPollingService`는 claim한 이벤트를 `OutboxEventPublisher`로 발행하고, 성공하면 published, 실패하면 retry 설정에 따라 다음 시도 시각을 계산해 failed로 기록합니다. starter는 scheduler를 자동으로 켜지 않으므로 애플리케이션에서 실행 주기를 명시해야 합니다.
+`OutboxPollingService`는 claim한 이벤트를 `OutboxEventPublisher`로 발행하고, 성공하면 published, 실패하면 retry 설정에 따라 다음 시도 시각을 계산해 failed로 기록합니다. `scheduler.enabled=true`를 설정하면 starter가 전용 `ThreadPoolTaskScheduler`로 polling loop를 실행합니다. 앱에서 `OutboxScheduler` Bean을 등록하면 기본 scheduler는 생성되지 않습니다.
 
 ## Audit Log
 
