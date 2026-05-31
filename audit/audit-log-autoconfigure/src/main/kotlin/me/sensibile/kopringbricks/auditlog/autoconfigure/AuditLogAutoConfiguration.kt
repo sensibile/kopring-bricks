@@ -1,5 +1,6 @@
 package me.sensibile.kopringbricks.auditlog.autoconfigure
 
+import me.sensibile.kopringbricks.support.jdbc.autoconfigure.requireSimpleSqlIdentifier
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass
@@ -31,7 +32,7 @@ class AuditLogAutoConfiguration {
     ): AuditEventRepository =
         JdbcAuditEventRepository(
             jdbcClient,
-            properties.jdbc.tableName.requireSqlIdentifier("tableName"),
+            properties.jdbc.tableName.requireSimpleSqlIdentifier("kopring.bricks.audit-log.jdbc.tableName"),
         )
 
     @Bean
@@ -45,13 +46,3 @@ class AuditLogAutoConfiguration {
         properties: AuditLogProperties,
     ): AuditEventPublisher = DefaultAuditEventPublisher(repository, properties)
 }
-
-private fun String.requireSqlIdentifier(propertyName: String): String {
-    require(SQL_IDENTIFIER.matches(this)) {
-        "kopring.bricks.audit-log.jdbc.$propertyName must be a simple SQL identifier: $this"
-    }
-
-    return this
-}
-
-private val SQL_IDENTIFIER = Regex("[A-Za-z_][A-Za-z0-9_]*")

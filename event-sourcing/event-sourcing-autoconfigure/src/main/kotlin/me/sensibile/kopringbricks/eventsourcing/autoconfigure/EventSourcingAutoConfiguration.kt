@@ -1,5 +1,6 @@
 package me.sensibile.kopringbricks.eventsourcing.autoconfigure
 
+import me.sensibile.kopringbricks.support.jdbc.autoconfigure.requireSimpleSqlIdentifier
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
@@ -34,7 +35,7 @@ class EventSourcingAutoConfiguration {
     ): EventStore =
         JdbcEventStore(
             jdbcClient,
-            properties.jdbc.tableName.requireSqlIdentifier("tableName"),
+            properties.jdbc.tableName.requireSimpleSqlIdentifier("kopring.bricks.event-sourcing.jdbc.tableName"),
             clock.getIfAvailable { Clock.systemUTC() },
         )
 
@@ -43,13 +44,3 @@ class EventSourcingAutoConfiguration {
     @ConditionalOnMissingBean
     fun eventSourcingTemplate(eventStore: EventStore): EventSourcingTemplate = EventSourcingTemplate(eventStore)
 }
-
-private fun String.requireSqlIdentifier(propertyName: String): String {
-    require(SQL_IDENTIFIER.matches(this)) {
-        "kopring.bricks.event-sourcing.jdbc.$propertyName must be a simple SQL identifier: $this"
-    }
-
-    return this
-}
-
-private val SQL_IDENTIFIER = Regex("[A-Za-z_][A-Za-z0-9_]*")
