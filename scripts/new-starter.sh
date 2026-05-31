@@ -291,28 +291,29 @@ write_file "$autoconfigure_dir/src/main/resources/META-INF/spring/org.springfram
 
 write_file "$autoconfigure_dir/src/test/kotlin/$package_dir/$test_class.kt" "package $package_name
 
-import kotlin.test.Test
-
+import org.assertj.core.api.Assertions.assertThat
 import org.springframework.boot.autoconfigure.AutoConfigurations
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
+import kotlin.test.Test
 
 class $test_class {
-    private val contextRunner = ApplicationContextRunner()
-        .withConfiguration(AutoConfigurations.of($autoconfiguration_class::class.java))
+    private val contextRunner =
+        ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of($autoconfiguration_class::class.java))
 
     @Test
-    fun \`loads when enabled\`() {
+    fun \`creates configuration properties when enabled\`() {
         contextRunner.run { context ->
-            assert(context.isRunning)
+            assertThat(context).hasSingleBean($properties_class::class.java)
         }
     }
 
     @Test
-    fun \`backs off when disabled\`() {
+    fun \`does not create configuration properties when disabled\`() {
         contextRunner
             .withPropertyValues(\"$property_prefix.enabled=false\")
             .run { context ->
-                assert(context.isRunning)
+                assertThat(context).doesNotHaveBean($properties_class::class.java)
             }
     }
 }
@@ -329,6 +330,12 @@ class $starter_test_class {
     @Test
     void exposesAutoConfigurationOnClasspath() {
         assertThatCode(() -> Class.forName(\"$package_name.$autoconfiguration_class\"))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    void exposesConfigurationPropertiesOnClasspath() {
+        assertThatCode(() -> Class.forName(\"$package_name.$properties_class\"))
             .doesNotThrowAnyException();
     }
 }
@@ -348,6 +355,7 @@ echo
 echo "Next steps:"
 echo "  ./gradlew :$DOMAIN:$autoconfigure_module:test"
 echo "  ./gradlew :$DOMAIN:$starter_module:test"
-echo "  scripts/docs-facts.sh"
-echo "  scripts/docs-facts.sh --check"
+echo "  mise run tooling:test"
+echo "  mise run docs:facts"
+echo "  mise run docs:check"
 echo "  update README.md with installation and configuration examples"

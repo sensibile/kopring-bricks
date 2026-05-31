@@ -11,11 +11,9 @@ import org.junit.jupiter.api.Assertions.assertAll
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.cache.CacheManager
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
@@ -29,6 +27,7 @@ import kotlin.test.assertNotNull
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Import(TodoSampleTestSupportConfiguration::class)
 class TodoApiApplicationTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -226,19 +225,4 @@ class TodoApiApplicationTests {
             .response
             .getHeader(HttpHeaders.ETAG)
             .let(::requireNotNull)
-
-    @TestConfiguration
-    class TestSupportConfiguration {
-        @Bean
-        @Primary
-        fun recordingAuditEventPublisher(): RecordingAuditEventPublisher = RecordingAuditEventPublisher()
-
-        @Bean
-        @Primary
-        fun inMemoryOutboxEventRepository(): InMemoryOutboxEventRepository = InMemoryOutboxEventRepository()
-
-        @Bean
-        @Primary
-        fun recordingOutboxEventPublisher(): RecordingOutboxEventPublisher = RecordingOutboxEventPublisher()
-    }
 }

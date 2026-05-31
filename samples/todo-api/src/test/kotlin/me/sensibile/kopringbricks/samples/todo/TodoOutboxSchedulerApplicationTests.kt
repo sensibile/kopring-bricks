@@ -13,10 +13,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.context.annotation.Bean
-import org.springframework.context.annotation.Primary
+import org.springframework.context.annotation.Import
 import org.springframework.http.MediaType
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
 import org.springframework.test.web.servlet.MockMvc
@@ -32,6 +30,7 @@ import kotlin.test.fail
     ],
 )
 @AutoConfigureMockMvc
+@Import(TodoSampleTestSupportConfiguration::class)
 class TodoOutboxSchedulerApplicationTests {
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -104,21 +103,6 @@ class TodoOutboxSchedulerApplicationTests {
             "Timed out waiting for $count published outbox event(s). " +
                 "published=${publishedEvents.size}, storedStatuses=${storedEvents.map { it.status }}",
         )
-    }
-
-    @TestConfiguration
-    class TestSupportConfiguration {
-        @Bean
-        @Primary
-        fun recordingAuditEventPublisher(): RecordingAuditEventPublisher = RecordingAuditEventPublisher()
-
-        @Bean
-        @Primary
-        fun inMemoryOutboxEventRepository(): InMemoryOutboxEventRepository = InMemoryOutboxEventRepository()
-
-        @Bean
-        @Primary
-        fun recordingOutboxEventPublisher(): RecordingOutboxEventPublisher = RecordingOutboxEventPublisher()
     }
 
     private companion object {

@@ -81,6 +81,9 @@ test_new_starter_for_new_domain() {
   assert_contains "$repo_copy/settings.gradle.kts" 'include("rules:rule-decision-starter")'
   assert_file_exists "$repo_copy/rules/rule-decision-starter/src/test/java/me/sensibile/kopringbricks/rules/decision/starter/RuleDecisionStarterSmokeTests.java"
   assert_file_exists "$repo_copy/rules/rule-decision-autoconfigure/src/test/kotlin/me/sensibile/kopringbricks/rules/decision/autoconfigure/RuleDecisionAutoConfigurationTests.kt"
+  assert_contains "$repo_copy/rules/rule-decision-autoconfigure/src/test/kotlin/me/sensibile/kopringbricks/rules/decision/autoconfigure/RuleDecisionAutoConfigurationTests.kt" 'assertThat(context).hasSingleBean(RuleDecisionProperties::class.java)'
+  assert_contains "$repo_copy/rules/rule-decision-autoconfigure/src/test/kotlin/me/sensibile/kopringbricks/rules/decision/autoconfigure/RuleDecisionAutoConfigurationTests.kt" 'assertThat(context).doesNotHaveBean(RuleDecisionProperties::class.java)'
+  assert_contains "$repo_copy/rules/rule-decision-starter/src/test/java/me/sensibile/kopringbricks/rules/decision/starter/RuleDecisionStarterSmokeTests.java" 'exposesConfigurationPropertiesOnClasspath'
 
   local order
   order="$(awk '
