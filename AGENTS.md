@@ -164,10 +164,11 @@ Use `docs/generated/project-facts.md` as factual source material for README and
 human-authored docs. Do not invent modules, APIs, dependencies, properties, or
 guarantees not supported by code or generated facts.
 
-Agent-facing documentation includes `AGENTS.md`, `docs/generated/project-facts.md`,
-and `docs/prompts/*`. Keep it factual, explicit, and easy for automation to
-follow. README files are human-facing orientation and should not become an
-exhaustive agent rulebook.
+Agent-facing documentation includes `AGENTS.md`,
+`docs/application-agent-guide.md`, `docs/generated/project-facts.md`, and
+`docs/prompts/*`. Keep it factual, explicit, and easy for automation to follow.
+README files are human-facing orientation and should not become an exhaustive
+agent rulebook.
 
 ## Pull Requests
 
