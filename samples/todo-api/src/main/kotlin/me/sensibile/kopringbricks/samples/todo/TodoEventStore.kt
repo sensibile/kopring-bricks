@@ -17,6 +17,10 @@ class TodoEventStore : EventStore {
         events: List<EventStoreEvent>,
     ): EventAppendResult =
         synchronized(eventsByStream) {
+            require(streamId.isNotBlank()) { "streamId must not be blank" }
+            require(expectedVersion >= 0) { "expectedVersion must be greater than or equal to zero" }
+            require(events.isNotEmpty()) { "events must not be empty" }
+
             val streamEvents = eventsByStream.getOrPut(streamId) { mutableListOf() }
             val actualVersion = streamEvents.lastOrNull()?.streamVersion ?: 0
             if (actualVersion != expectedVersion) {
@@ -52,6 +56,9 @@ class TodoEventStore : EventStore {
         fromVersion: Long,
     ): List<StoredEvent> =
         synchronized(eventsByStream) {
+            require(streamId.isNotBlank()) { "streamId must not be blank" }
+            require(fromVersion >= 1) { "fromVersion must be greater than or equal to one" }
+
             eventsByStream[streamId]
                 ?.filter { it.streamVersion >= fromVersion }
                 ?.sortedBy { it.streamVersion }
