@@ -11,4 +11,10 @@ class CaffeineCacheStarterSmokeTests {
         assertThatCode(() -> Class.forName("me.sensibile.kopringbricks.cache.caffeine.autoconfigure.CaffeineCacheAutoConfiguration"))
             .doesNotThrowAnyException();
     }
+
+    @Test
+    void exposesBundledCacheDependenciesOnClasspath() {
+        assertThatCode(() -> Class.forName("com.github.benmanes.caffeine.cache.Caffeine"))
+            .doesNotThrowAnyException();
+    }
 }

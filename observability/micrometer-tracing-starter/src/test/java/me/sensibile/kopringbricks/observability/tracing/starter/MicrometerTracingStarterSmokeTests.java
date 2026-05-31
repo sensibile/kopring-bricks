@@ -11,4 +11,10 @@ class MicrometerTracingStarterSmokeTests {
         assertThatCode(() -> Class.forName("me.sensibile.kopringbricks.observability.tracing.autoconfigure.MicrometerTracingAutoConfiguration"))
             .doesNotThrowAnyException();
     }
+
+    @Test
+    void exposesBundledTracingDependenciesOnClasspath() {
+        assertThatCode(() -> Class.forName("io.opentelemetry.api.OpenTelemetry"))
+            .doesNotThrowAnyException();
+    }
 }

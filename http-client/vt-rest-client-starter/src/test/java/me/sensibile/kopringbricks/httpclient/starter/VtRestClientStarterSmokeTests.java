@@ -11,4 +11,10 @@ class VtRestClientStarterSmokeTests {
         assertThatCode(() -> Class.forName("me.sensibile.kopringbricks.httpclient.autoconfigure.VtRestClientAutoConfiguration"))
             .doesNotThrowAnyException();
     }
+
+    @Test
+    void exposesBundledRestClientDependenciesOnClasspath() {
+        assertThatCode(() -> Class.forName("org.springframework.web.client.RestClient"))
+            .doesNotThrowAnyException();
+    }
 }

@@ -51,3 +51,7 @@ run = "scripts/docs-coverage-check.sh"
 [tasks."docs:check"]
 description = "Run documentation consistency checks"
 depends = ["docs:facts:check", "docs:coverage"]
+
+[tasks."tooling:test"]
+description = "Run shell regression tests for repository tooling"
+run = "scripts/test-tooling.sh"

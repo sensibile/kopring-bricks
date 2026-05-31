@@ -119,6 +119,8 @@ mise run docs:facts
 Run `mise run lint` before committing Kotlin changes. Run `mise run docs:check`
 when changing starter lists, module references, README content, generated facts,
 or agent-facing documentation.
+Run `mise run tooling:test` when changing repository scripts such as
+`new-starter.sh`, `docs-facts.sh`, or `docs-coverage-check.sh`.
 
 If verification cannot be run, state why in the PR description.
 

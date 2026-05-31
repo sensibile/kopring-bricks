@@ -11,4 +11,10 @@ class WebMvcErrorStarterSmokeTests {
         assertThatCode(() -> Class.forName("me.sensibile.kopringbricks.web.error.autoconfigure.WebMvcErrorAutoConfiguration"))
             .doesNotThrowAnyException();
     }
+
+    @Test
+    void exposesBundledWebMvcDependenciesOnClasspath() {
+        assertThatCode(() -> Class.forName("org.springframework.web.servlet.DispatcherServlet"))
+            .doesNotThrowAnyException();
+    }
 }
