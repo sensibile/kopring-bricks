@@ -810,6 +810,15 @@ kopring:
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
+data class User(
+    val id: Long,
+    val name: String,
+)
+
+interface UserRepository {
+    fun findById(userId: Long): User
+}
+
 @Service
 class UserService(
     private val userRepository: UserRepository,
