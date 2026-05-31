@@ -11,4 +11,10 @@ class EventSourcingStarterSmokeTests {
         assertThatCode(() -> Class.forName("me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventSourcingAutoConfiguration"))
             .doesNotThrowAnyException();
     }
+
+    @Test
+    void exposesJdbcSupportDependenciesOnClasspath() {
+        assertThatCode(() -> Class.forName("org.springframework.jdbc.core.simple.JdbcClient"))
+            .doesNotThrowAnyException();
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 @SpringBootTest(
     classes = Resilience4jStarterSmokeTests.TestApplication.class,
@@ -33,6 +34,16 @@ class Resilience4jStarterSmokeTests {
         assertThat(context.getBeanProvider(RetryRegistry.class).getIfAvailable()).isNotNull();
         assertThat(environment.getProperty("resilience4j.retry.configs.default.max-attempts", Integer.class))
             .isEqualTo(2);
+    }
+
+    @Test
+    void exposesBundledIntegrationDependenciesOnClasspath() {
+        assertThatCode(() -> Class.forName("org.springframework.boot.health.contributor.HealthIndicator"))
+            .doesNotThrowAnyException();
+        assertThatCode(() -> Class.forName("org.aspectj.lang.ProceedingJoinPoint"))
+            .doesNotThrowAnyException();
+        assertThatCode(() -> Class.forName("io.github.resilience4j.micrometer.tagged.TaggedCircuitBreakerMetrics"))
+            .doesNotThrowAnyException();
     }
 
     @SpringBootApplication
