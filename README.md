@@ -288,6 +288,8 @@ class FeatureRuleController(
 
 `event-sourcing-starter`는 도메인 이벤트를 append-only stream으로 저장하고 다시 읽어 상태를 재구성하기 위한 얇은 저장소/템플릿 API를 제공합니다. Aggregate 모델, 도메인 이벤트 클래스, projection, 외부 발행 방식은 애플리케이션이 소유하고, starter는 반복되는 저장소 배선과 optimistic stream version 검증만 담당합니다.
 
+`samples:todo-api`는 애플리케이션이 제공한 in-memory `EventStore` 위에 `EventSourcingTemplate`을 구성하고, todo 생성/완료 시점에 `todo.created`, `todo.completed` 이벤트를 저장하는 흐름을 보여줍니다.
+
 기본 동작:
 
 - `EventStore` 계약 제공
