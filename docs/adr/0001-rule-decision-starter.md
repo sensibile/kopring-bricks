@@ -31,7 +31,7 @@ The starter should provide a small decision abstraction and Spring Boot integrat
 The starter should provide:
 
 - `RuleDecisionClient` as the primary application API.
-- `RuleDecisionRequest` carrying a decision key, subject, attributes, and optional default.
+- `RuleDecisionRequest` carrying a decision key, optional subject, attributes, and required default value.
 - `RuleDecisionResult` carrying the selected value, matched rule id/version when known, reason, and metadata.
 - `RuleDecisionProvider` as the backend extension point implemented by applications or adapters.
 - `RuleDecisionRecorder` as an optional hook for evaluation telemetry.
@@ -64,6 +64,12 @@ Applications may still build these pieces locally or through separate adapters.
 The first API should stay deliberately small:
 
 ```kotlin
+data class RuleSubject(
+    val type: String,
+    val key: String,
+    val attributes: Map<String, Any?> = emptyMap(),
+)
+
 data class RuleDecisionRequest<T>(
     val key: String,
     val subject: RuleSubject? = null,
