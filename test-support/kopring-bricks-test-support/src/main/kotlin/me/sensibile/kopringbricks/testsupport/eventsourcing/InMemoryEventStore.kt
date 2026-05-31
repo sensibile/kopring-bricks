@@ -12,9 +12,11 @@ class InMemoryEventStore : EventStore {
 
     val events: List<StoredEvent>
         get() =
-            eventsByStream.values
-                .flatten()
-                .sortedWith(compareBy<StoredEvent> { it.streamId }.thenBy { it.streamVersion })
+            synchronized(eventsByStream) {
+                eventsByStream.values
+                    .flatMap { it.toList() }
+                    .sortedWith(compareBy<StoredEvent> { it.streamId }.thenBy { it.streamVersion })
+            }
 
     override fun append(
         streamId: String,
@@ -64,13 +66,17 @@ class InMemoryEventStore : EventStore {
         require(streamId.isNotBlank()) { "streamId must not be blank" }
         require(fromVersion >= 1) { "fromVersion must be greater than or equal to one" }
 
-        return eventsByStream[streamId]
-            ?.filter { it.streamVersion >= fromVersion }
-            ?.sortedBy { it.streamVersion }
-            ?: emptyList()
+        return synchronized(eventsByStream) {
+            eventsByStream[streamId]
+                ?.filter { it.streamVersion >= fromVersion }
+                ?.sortedBy { it.streamVersion }
+                ?: emptyList()
+        }
     }
 
     fun clear() {
-        eventsByStream.clear()
+        synchronized(eventsByStream) {
+            eventsByStream.clear()
+        }
     }
 }

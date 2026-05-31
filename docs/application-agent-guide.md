@@ -23,6 +23,8 @@ Use `kopring-bricks` when an application needs one of the existing opinionated S
 
 Prefer starter modules in applications. Autoconfigure modules are library internals unless an application has a specific reason to depend on them directly.
 
+Planned rule or feature-flag work should follow [ADR 0001: Rule Decision Starter Boundary](adr/0001-rule-decision-starter.md). Until that starter exists, keep rule evaluation local to the application and use existing bricks around the edges: `audit-log-starter` for rule changes, `outbox-starter` for change publication, and `concurrency-control-starter` for versioned admin updates.
+
 ## App Integration Checklist
 
 1. Add the GitHub Packages repository and credentials.
@@ -35,6 +37,7 @@ Prefer starter modules in applications. Autoconfigure modules are library intern
 8. Use `event-sourcing-starter` when application state is rebuilt from append-only domain events. Keep aggregate models and event classes in the application; use the starter for storage, optimistic stream version checks, and deterministic replay.
 9. Use `outbox-starter` when a state change must be durably recorded before an external publisher, cache invalidator, or webhook adapter sends it. Provide an app-specific `OutboxEventPublisher`, then either enable `kopring.bricks.outbox.scheduler.enabled=true` or call `OutboxPollingService.poll()` from the app scheduler.
 10. Use `kopring-bricks-test-support` from `testImplementation` when app tests need recording audit, outbox, or in-memory event store beans without a real database or message broker.
+11. For feature flags or policy rules, keep domain-specific rule storage and targeting in the app unless the requirement matches the rule decision starter boundary.
 
 ## Gradle Example
 

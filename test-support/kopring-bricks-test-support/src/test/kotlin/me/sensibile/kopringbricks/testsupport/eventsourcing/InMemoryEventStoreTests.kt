@@ -5,6 +5,8 @@ import me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventStreamVersion
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import java.time.Instant
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 import kotlin.test.Test
 
 class InMemoryEventStoreTests {
@@ -58,6 +60,42 @@ class InMemoryEventStoreTests {
             .containsExactly("todo.completed")
     }
 
+    @Test
+    fun `supports concurrent reads writes and clears`() {
+        val eventStore = InMemoryEventStore()
+        val executor = Executors.newFixedThreadPool(WORKER_COUNT)
+        val tasks: List<Callable<Unit>> =
+            List(EVENT_COUNT) { index ->
+                Callable<Unit> {
+                    eventStore.append(
+                        streamId = "todo-$index",
+                        expectedVersion = 0,
+                        events = listOf(event("event-$index", "todo.created")),
+                    )
+                    Unit
+                }
+            } +
+                List(EVENT_COUNT) { index ->
+                    Callable<Unit> {
+                        eventStore.load("todo-$index")
+                        eventStore.events
+                        Unit
+                    }
+                } +
+                List(CLEAR_COUNT) {
+                    Callable<Unit> {
+                        eventStore.clear()
+                        Unit
+                    }
+                }
+
+        try {
+            executor.invokeAll(tasks).forEach { future -> future.get() }
+        } finally {
+            executor.shutdownNow()
+        }
+    }
+
     private fun event(
         id: String,
         eventType: String,
@@ -71,5 +109,8 @@ class InMemoryEventStoreTests {
 
     private companion object {
         private val NOW: Instant = Instant.parse("2026-05-29T00:00:00Z")
+        private const val EVENT_COUNT = 50
+        private const val CLEAR_COUNT = 5
+        private const val WORKER_COUNT = 8
     }
 }

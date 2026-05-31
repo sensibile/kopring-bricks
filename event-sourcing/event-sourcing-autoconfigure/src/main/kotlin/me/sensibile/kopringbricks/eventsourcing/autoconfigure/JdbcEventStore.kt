@@ -83,7 +83,7 @@ class JdbcEventStore(
             throw EventStreamVersionConflictException(
                 streamId = streamId,
                 expectedVersion = expectedVersion,
-                actualVersion = currentVersion(streamId),
+                actualVersion = null,
                 cause = exception,
             )
         }
