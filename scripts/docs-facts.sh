@@ -71,7 +71,17 @@ module_kind() {
       printf 'test-support'
       ;;
     *)
-      printf 'sample'
+      case "$1" in
+        support:*)
+          printf 'support'
+          ;;
+        samples:*)
+          printf 'sample'
+          ;;
+        *)
+          printf 'module'
+          ;;
+      esac
       ;;
   esac
 }

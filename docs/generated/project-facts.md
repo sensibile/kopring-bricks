@@ -316,8 +316,6 @@ EnvironmentPostProcessor classes:
 - `api(libs.spring.boot.starter.aspectj)`
 - `api(libs.resilience4j.spring.boot4)`
 - `api(libs.resilience4j.micrometer)`
-- `testImplementation(libs.spring.boot.starter.test)`
-- `testRuntimeOnly(libs.junit.platform.launcher)`
 
 ### `audit:audit-log-autoconfigure`
 
