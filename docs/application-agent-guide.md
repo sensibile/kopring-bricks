@@ -17,8 +17,9 @@ Use `kopring-bricks` when an application needs one of the existing opinionated S
 - `caffeine-cache-starter` for Caffeine cache defaults.
 - `resilience4j-starter` for Resilience4j defaults.
 - `audit-log-starter` for audit event publishing and JDBC-backed audit log storage.
+- `event-sourcing-starter` for thin event store append/load/replay primitives with optional PostgreSQL-backed persistence.
 - `outbox-starter` for transactional outbox event storage, polling publication flow, and PostgreSQL-backed persistence.
-- `kopring-bricks-test-support` for recording audit/outbox test doubles in application integration tests.
+- `kopring-bricks-test-support` for recording audit/outbox and in-memory event-sourcing test doubles in application integration tests.
 
 Prefer starter modules in applications. Autoconfigure modules are library internals unless an application has a specific reason to depend on them directly.
 
@@ -33,9 +34,10 @@ Planned rule or feature-flag work should follow [ADR 0001: Rule Decision Starter
 5. If the app reveals a missing library capability, open an issue in `kopring-bricks` instead of patching around it in the app.
 6. Use `audit-log-starter` for admin actions, configuration changes, rule changes, approval decisions, and other events that need an operator-visible trail.
 7. Use `concurrency-control-starter` for admin or rule APIs that update versioned resources and must reject stale writes.
-8. Use `outbox-starter` when a state change must be durably recorded before an external publisher, cache invalidator, or webhook adapter sends it. Provide an app-specific `OutboxEventPublisher`, then either enable `kopring.bricks.outbox.scheduler.enabled=true` or call `OutboxPollingService.poll()` from the app scheduler.
-9. Use `kopring-bricks-test-support` from `testImplementation` when app tests need recording audit or outbox beans without a real database or message broker.
-10. For feature flags or policy rules, keep domain-specific rule storage and targeting in the app unless the requirement matches the rule decision starter boundary.
+8. Use `event-sourcing-starter` when application state is rebuilt from append-only domain events. Keep aggregate models and event classes in the application; use the starter for storage, optimistic stream version checks, and deterministic replay.
+9. Use `outbox-starter` when a state change must be durably recorded before an external publisher, cache invalidator, or webhook adapter sends it. Provide an app-specific `OutboxEventPublisher`, then either enable `kopring.bricks.outbox.scheduler.enabled=true` or call `OutboxPollingService.poll()` from the app scheduler.
+10. Use `kopring-bricks-test-support` from `testImplementation` when app tests need recording audit, outbox, or in-memory event store beans without a real database or message broker.
+11. For feature flags or policy rules, keep domain-specific rule storage and targeting in the app unless the requirement matches the rule decision starter boundary.
 
 ## Gradle Example
 
