@@ -38,6 +38,8 @@ event-sourcing/
 messaging/
   outbox-autoconfigure
   outbox-starter
+support/
+  jdbc-autoconfigure
 test-support/
   kopring-bricks-test-support
 samples/
@@ -45,6 +47,7 @@ samples/
 ```
 
 `*-autoconfigure` 모듈은 실제 auto-configuration을 제공하고, `*-starter` 모듈은 애플리케이션에서 가져다 쓰는 starter 의존성입니다.
+`support/*` 모듈은 starter 구현에서 공유하는 내부 helper이며 애플리케이션이 직접 의존하는 대상이 아닙니다.
 `kopring-bricks-test-support`는 starter를 소비하는 애플리케이션 테스트에서 쓰는 recording/fake helper를 제공합니다.
 
 애플리케이션 개발 에이전트가 이 라이브러리를 소비하거나 라이브러리 변경 요청을 넘겨야 할 때는 [Application Agent Guide](docs/application-agent-guide.md)를 참고하세요.
