@@ -96,20 +96,48 @@ write_file() {
   printf '%s' "$content" > "$path"
 }
 
-append_include() {
+insert_include() {
   local module_path="$1"
   local include_line="include(\"$module_path\")"
+  local settings_file="$ROOT_DIR/settings.gradle.kts"
 
-  if grep -Fqx "$include_line" "$ROOT_DIR/settings.gradle.kts"; then
+  if grep -Fqx "$include_line" "$settings_file"; then
     return 0
   fi
 
   if [[ "$DRY_RUN" == "true" ]]; then
-    echo "append settings.gradle.kts: $include_line"
+    echo "insert settings.gradle.kts: $include_line"
     return 0
   fi
 
-  printf '\n%s\n' "$include_line" >> "$ROOT_DIR/settings.gradle.kts"
+  local tmp_file
+  tmp_file="$(mktemp "$ROOT_DIR/.settings.gradle.kts.XXXXXX")"
+
+  awk -v domain="$DOMAIN" -v include_line="$include_line" '
+    BEGIN {
+      inserted = 0
+      domain_prefix = "include(\"" domain ":"
+    }
+    {
+      if (!inserted && previous != "" && index(previous, domain_prefix) == 1 && index($0, domain_prefix) != 1) {
+        print include_line
+        inserted = 1
+      }
+      if (!inserted && previous != "" && index(previous, domain_prefix) != 1 && ($0 == "include(\"test-support:kopring-bricks-test-support\")" || index($0, "include(\"samples:") == 1)) {
+        print include_line
+        inserted = 1
+      }
+      print
+      previous = $0
+    }
+    END {
+      if (!inserted) {
+        print include_line
+      }
+    }
+  ' "$settings_file" > "$tmp_file"
+
+  mv "$tmp_file" "$settings_file"
 }
 
 while [[ "$#" -gt 0 ]]; do
@@ -175,9 +203,12 @@ autoconfigure_dir="$ROOT_DIR/$DOMAIN/$autoconfigure_module"
 starter_dir="$ROOT_DIR/$DOMAIN/$starter_module"
 package_name="me.sensibile.kopringbricks.$PACKAGE_SEGMENT.autoconfigure"
 package_dir="$(printf '%s' "$package_name" | tr '.' '/')"
+starter_package_name="${package_name%.*}.starter"
+starter_package_dir="$(printf '%s' "$starter_package_name" | tr '.' '/')"
 autoconfiguration_class="${CLASS_PREFIX}AutoConfiguration"
 properties_class="${CLASS_PREFIX}Properties"
 test_class="${CLASS_PREFIX}AutoConfigurationTests"
+starter_test_class="${CLASS_PREFIX}StarterSmokeTests"
 property_prefix="kopring.bricks.$NAME"
 
 [[ ! -e "$autoconfigure_dir" ]] || die "directory already exists: $autoconfigure_dir"
@@ -287,8 +318,24 @@ class $test_class {
 }
 "
 
-append_include "$DOMAIN:$autoconfigure_module"
-append_include "$DOMAIN:$starter_module"
+write_file "$starter_dir/src/test/java/$starter_package_dir/$starter_test_class.java" "package $starter_package_name;
+
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThatCode;
+
+class $starter_test_class {
+
+    @Test
+    void exposesAutoConfigurationOnClasspath() {
+        assertThatCode(() -> Class.forName(\"$package_name.$autoconfiguration_class\"))
+            .doesNotThrowAnyException();
+    }
+}
+"
+
+insert_include "$DOMAIN:$autoconfigure_module"
+insert_include "$DOMAIN:$starter_module"
 
 if [[ "$DRY_RUN" == "true" ]]; then
   exit 0
@@ -300,4 +347,7 @@ echo "  $DOMAIN/$starter_module"
 echo
 echo "Next steps:"
 echo "  ./gradlew :$DOMAIN:$autoconfigure_module:test"
+echo "  ./gradlew :$DOMAIN:$starter_module:test"
+echo "  scripts/docs-facts.sh"
+echo "  scripts/docs-facts.sh --check"
 echo "  update README.md with installation and configuration examples"

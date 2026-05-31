@@ -127,6 +127,8 @@ If verification cannot be run, state why in the PR description.
   and relevant conditional branches.
 - Prefer fakes, stubs, fixtures, and real domain objects over mocking
   frameworks.
+- Starter modules should have a thin smoke test that verifies the bundled
+  auto-configuration is present on the starter test classpath.
 - Add broader tests when touching shared behavior, starter contracts,
   dependency metadata, or sample workflows.
 
