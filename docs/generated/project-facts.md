@@ -9,6 +9,7 @@ Use it as factual source material when updating human-authored documentation.
 - `http-client:vt-rest-client-starter` (starter)
 - `jdbc-client:vt-jdbc-client-autoconfigure` (autoconfigure)
 - `jdbc-client:vt-jdbc-client-starter` (starter)
+- `support:jdbc-autoconfigure` (autoconfigure)
 - `observability:logging-observation-autoconfigure` (autoconfigure)
 - `observability:logging-observation-starter` (starter)
 - `observability:micrometer-tracing-autoconfigure` (autoconfigure)
@@ -60,6 +61,12 @@ EnvironmentPostProcessor classes:
 
 AutoConfiguration classes:
 - `me.sensibile.kopringbricks.jdbcclient.autoconfigure.VtJdbcClientAutoConfiguration`
+
+EnvironmentPostProcessor classes:
+
+### `support:jdbc-autoconfigure`
+
+AutoConfiguration classes:
 
 EnvironmentPostProcessor classes:
 
@@ -214,6 +221,11 @@ EnvironmentPostProcessor classes:
 - `api(project(":jdbc-client:vt-jdbc-client-autoconfigure"))`
 - `api(libs.spring.boot.starter.jdbc)`
 
+### `support:jdbc-autoconfigure`
+
+- `api(libs.spring.boot.autoconfigure)`
+- `api(libs.spring.boot.jdbc)`
+
 ### `observability:logging-observation-autoconfigure`
 
 - `api(libs.spring.boot)`
@@ -309,6 +321,7 @@ EnvironmentPostProcessor classes:
 
 ### `audit:audit-log-autoconfigure`
 
+- `implementation(project(":support:jdbc-autoconfigure"))`
 - `api(libs.spring.boot)`
 - `api(libs.spring.boot.autoconfigure)`
 - `api(libs.spring.boot.jdbc)`
@@ -322,6 +335,7 @@ EnvironmentPostProcessor classes:
 
 ### `event-sourcing:event-sourcing-autoconfigure`
 
+- `implementation(project(":support:jdbc-autoconfigure"))`
 - `api(libs.spring.boot)`
 - `api(libs.spring.boot.autoconfigure)`
 - `api(libs.spring.boot.jdbc)`
@@ -334,6 +348,7 @@ EnvironmentPostProcessor classes:
 
 ### `messaging:outbox-autoconfigure`
 
+- `implementation(project(":support:jdbc-autoconfigure"))`
 - `api(libs.spring.boot)`
 - `api(libs.spring.boot.autoconfigure)`
 - `api(libs.spring.boot.jdbc)`

@@ -1,5 +1,6 @@
 package me.sensibile.kopringbricks.messaging.outbox.autoconfigure
 
+import me.sensibile.kopringbricks.support.jdbc.autoconfigure.requireSimpleSqlIdentifier
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.AutoConfiguration
@@ -36,7 +37,7 @@ class OutboxAutoConfiguration {
     ): OutboxEventRepository =
         JdbcOutboxEventRepository(
             jdbcClient,
-            properties.jdbc.tableName.requireSqlIdentifier("tableName"),
+            properties.jdbc.tableName.requireSimpleSqlIdentifier("kopring.bricks.outbox.jdbc.tableName"),
         )
 
     @Bean
@@ -103,14 +104,5 @@ class OutboxAutoConfiguration {
     ): OutboxScheduler = DefaultOutboxScheduler(pollingService, taskScheduler, properties)
 }
 
-private fun String.requireSqlIdentifier(propertyName: String): String {
-    require(SQL_IDENTIFIER.matches(this)) {
-        "kopring.bricks.outbox.jdbc.$propertyName must be a simple SQL identifier: $this"
-    }
-
-    return this
-}
-
 private const val OUTBOX_TASK_SCHEDULER_BEAN_NAME = "outboxTaskScheduler"
 private const val MIN_SCHEDULER_POOL_SIZE = 1
-private val SQL_IDENTIFIER = Regex("[A-Za-z_][A-Za-z0-9_]*")
