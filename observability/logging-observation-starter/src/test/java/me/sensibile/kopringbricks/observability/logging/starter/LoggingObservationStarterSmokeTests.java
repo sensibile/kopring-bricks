@@ -11,4 +11,10 @@ class LoggingObservationStarterSmokeTests {
         assertThatCode(() -> Class.forName("me.sensibile.kopringbricks.observability.logging.autoconfigure.LoggingObservationAutoConfiguration"))
             .doesNotThrowAnyException();
     }
+
+    @Test
+    void exposesBundledLoggingDependenciesOnClasspath() {
+        assertThatCode(() -> Class.forName("ch.qos.logback.classic.Logger"))
+            .doesNotThrowAnyException();
+    }
 }

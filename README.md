@@ -296,8 +296,6 @@ class FeatureRuleController(
 - 앱에서 `EventStore` 또는 `EventSourcingTemplate` Bean을 등록하면 기본 구현 back off
 - JDBC 저장소 조건이 맞지 않으면 내구성 없는 fallback 저장소를 만들지 않음
 
-`event-sourcing-starter`는 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
-
 ### Installation
 
 ```kotlin
@@ -330,6 +328,10 @@ kopring:
         table-name: event_store
         dialect: auto
 ```
+
+### PostgreSQL JDBC Storage
+
+`event-sourcing-starter`는 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
 
 `jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.event-sourcing.jdbc.dialect=postgresql`을 명시하세요.
 
@@ -383,8 +385,6 @@ class TodoCommandService(
 - 저장소가 없으면 `LoggingOutboxEventRepository` 구성
 - 앱에서 `OutboxEventRepository` 또는 `OutboxScheduler` Bean을 등록하면 기본 구현 back off
 
-`outbox-starter`는 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
-
 ### Installation
 
 ```kotlin
@@ -430,6 +430,10 @@ kopring:
         pool-size: 1
         thread-name-prefix: kopring-bricks-outbox-
 ```
+
+### PostgreSQL JDBC Storage
+
+`outbox-starter`는 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
 
 `jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.outbox.jdbc.dialect=postgresql`을 명시하세요.
 
@@ -492,8 +496,6 @@ class FeatureRuleOutboxPublisher : OutboxEventPublisher {
 - 앱에서 `AuditEventRepository` 또는 `AuditEventPublisher` Bean을 등록하면 기본 구현 back off
 - 저장 실패는 기본적으로 애플리케이션 요청을 실패시키지 않음
 
-`audit-log-starter`는 logging-only 사용을 막지 않기 위해 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
-
 ### Installation
 
 ```kotlin
@@ -528,6 +530,10 @@ kopring:
         table-name: audit_log
         dialect: auto
 ```
+
+### PostgreSQL JDBC Storage
+
+`audit-log-starter`는 logging-only 사용을 막지 않기 위해 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
 
 `jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.audit-log.jdbc.dialect=postgresql`을 명시하세요.
 
@@ -970,6 +976,7 @@ mise run format:ktlint
 mise run lint:detekt
 mise run lint
 mise run docs:check
+mise run tooling:test
 ```
 
 `format:ktlint` formats only changed Kotlin files by default.
@@ -1005,6 +1012,8 @@ scripts/docs-coverage-check.sh
 Use `docs/generated/project-facts.md` as factual source material and `docs/prompts/update-readme.md` as the update prompt. `mise run docs:check` verifies generated facts and checks that starter/test-support modules are mentioned in README and the application agent guide.
 
 ## Publishing
+
+See [Release Guide](docs/release.md) for the GitHub Packages release flow.
 
 Local verification:
 
