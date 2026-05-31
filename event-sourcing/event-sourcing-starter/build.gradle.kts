@@ -1,11 +1,9 @@
 plugins {
-    id("kopring.kotlin-autoconfigure-conventions")
+    id("kopring.starter-conventions")
 }
 
 dependencies {
-    api(project(":audit:audit-log-autoconfigure"))
     api(project(":event-sourcing:event-sourcing-autoconfigure"))
-    api(project(":messaging:outbox-autoconfigure"))
 }
 
 publishing {
@@ -13,8 +11,8 @@ publishing {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
             pom {
-                name = "Kopring Bricks Test Support"
-                description = "Test helpers for applications that consume Kopring Bricks starters."
+                name = "Kopring Bricks Event Sourcing Starter"
+                description = "Spring Boot starter for thin event sourcing storage and replay primitives."
                 url = "https://github.com/sensibile/kopring-bricks"
             }
         }

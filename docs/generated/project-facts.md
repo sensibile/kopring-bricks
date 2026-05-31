@@ -25,6 +25,8 @@ Use it as factual source material when updating human-authored documentation.
 - `resilience:resilience4j-starter` (starter)
 - `audit:audit-log-autoconfigure` (autoconfigure)
 - `audit:audit-log-starter` (starter)
+- `event-sourcing:event-sourcing-autoconfigure` (autoconfigure)
+- `event-sourcing:event-sourcing-starter` (starter)
 - `messaging:outbox-autoconfigure` (autoconfigure)
 - `messaging:outbox-starter` (starter)
 - `test-support:kopring-bricks-test-support` (test-support)
@@ -42,6 +44,7 @@ Use it as factual source material when updating human-authored documentation.
 - `cache:caffeine-cache-starter` -> `cache:caffeine-cache-autoconfigure`
 - `resilience:resilience4j-starter` -> `resilience:resilience4j-autoconfigure`
 - `audit:audit-log-starter` -> `audit:audit-log-autoconfigure`
+- `event-sourcing:event-sourcing-starter` -> `event-sourcing:event-sourcing-autoconfigure`
 - `messaging:outbox-starter` -> `messaging:outbox-autoconfigure`
 
 ## Auto Configurations
@@ -121,6 +124,13 @@ AutoConfiguration classes:
 
 EnvironmentPostProcessor classes:
 
+### `event-sourcing:event-sourcing-autoconfigure`
+
+AutoConfiguration classes:
+- `me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventSourcingAutoConfiguration`
+
+EnvironmentPostProcessor classes:
+
 ### `messaging:outbox-autoconfigure`
 
 AutoConfiguration classes:
@@ -169,6 +179,10 @@ EnvironmentPostProcessor classes:
 ### `audit:audit-log-autoconfigure`
 
 - `kopring.bricks.audit-log` -> `AuditLogProperties` (audit/audit-log-autoconfigure/src/main/kotlin/me/sensibile/kopringbricks/auditlog/autoconfigure/AuditLogProperties.kt)
+
+### `event-sourcing:event-sourcing-autoconfigure`
+
+- `kopring.bricks.event-sourcing` -> `EventSourcingProperties` (event-sourcing/event-sourcing-autoconfigure/src/main/kotlin/me/sensibile/kopringbricks/eventsourcing/autoconfigure/EventSourcingProperties.kt)
 
 ### `messaging:outbox-autoconfigure`
 
@@ -306,6 +320,18 @@ EnvironmentPostProcessor classes:
 
 - `api(project(":audit:audit-log-autoconfigure"))`
 
+### `event-sourcing:event-sourcing-autoconfigure`
+
+- `api(libs.spring.boot)`
+- `api(libs.spring.boot.autoconfigure)`
+- `api(libs.spring.boot.jdbc)`
+- `api(libs.spring.jdbc)`
+- `testImplementation(libs.spring.boot.starter.jdbc)`
+
+### `event-sourcing:event-sourcing-starter`
+
+- `api(project(":event-sourcing:event-sourcing-autoconfigure"))`
+
 ### `messaging:outbox-autoconfigure`
 
 - `api(libs.spring.boot)`
@@ -322,6 +348,7 @@ EnvironmentPostProcessor classes:
 ### `test-support:kopring-bricks-test-support`
 
 - `api(project(":audit:audit-log-autoconfigure"))`
+- `api(project(":event-sourcing:event-sourcing-autoconfigure"))`
 - `api(project(":messaging:outbox-autoconfigure"))`
 
 ### `samples:todo-api`

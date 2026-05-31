@@ -32,6 +32,9 @@ resilience/
 audit/
   audit-log-autoconfigure
   audit-log-starter
+event-sourcing/
+  event-sourcing-autoconfigure
+  event-sourcing-starter
 messaging/
   outbox-autoconfigure
   outbox-starter
@@ -45,6 +48,8 @@ samples/
 `kopring-bricks-test-support`는 starter를 소비하는 애플리케이션 테스트에서 쓰는 recording/fake helper를 제공합니다.
 
 애플리케이션 개발 에이전트가 이 라이브러리를 소비하거나 라이브러리 변경 요청을 넘겨야 할 때는 [Application Agent Guide](docs/application-agent-guide.md)를 참고하세요.
+
+Feature flag, rollout, policy rule 같은 룰 기반 분기 starter는 아직 구현하지 않았습니다. 다음 후보의 경계는 [ADR 0001: Rule Decision Starter Boundary](docs/adr/0001-rule-decision-starter.md)에 정리되어 있습니다.
 
 ## HTTP Client
 
@@ -273,6 +278,91 @@ class FeatureRuleController(
             .eTag(etags.generate(updated.version))
             .body(FeatureRuleResponse.from(updated))
     }
+}
+```
+
+## Event Sourcing
+
+`event-sourcing-starter`는 도메인 이벤트를 append-only stream으로 저장하고 다시 읽어 상태를 재구성하기 위한 얇은 저장소/템플릿 API를 제공합니다. Aggregate 모델, 도메인 이벤트 클래스, projection, 외부 발행 방식은 애플리케이션이 소유하고, starter는 반복되는 저장소 배선과 optimistic stream version 검증만 담당합니다.
+
+기본 동작:
+
+- `EventStore` 계약 제공
+- `EventSourcingTemplate` 자동 구성
+- PostgreSQL datasource로 감지되면 `JdbcEventStore` 구성
+- 앱에서 `EventStore` 또는 `EventSourcingTemplate` Bean을 등록하면 기본 구현 back off
+- JDBC 저장소 조건이 맞지 않으면 내구성 없는 fallback 저장소를 만들지 않음
+
+`event-sourcing-starter`는 JDBC starter를 끌고 오지 않습니다. PostgreSQL 저장소를 사용하려면 애플리케이션이 `spring-boot-starter-jdbc` 또는 `vt-jdbc-client-starter`처럼 `JdbcClient`를 제공하는 의존성을 별도로 추가해야 합니다.
+
+### Installation
+
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://maven.pkg.github.com/sensibile/kopring-bricks")
+        credentials {
+            username = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+            password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
+        }
+    }
+}
+
+dependencies {
+    implementation("me.sensibile:event-sourcing-starter:0.0.1-SNAPSHOT")
+    // Optional, when using the PostgreSQL JDBC-backed event store:
+    // implementation("org.springframework.boot:spring-boot-starter-jdbc")
+}
+```
+
+### Configuration
+
+```yaml
+kopring:
+  bricks:
+    event-sourcing:
+      enabled: true
+      jdbc:
+        table-name: event_store
+        dialect: auto
+```
+
+`jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.event-sourcing.jdbc.dialect=postgresql`을 명시하세요.
+
+PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/event-sourcing/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 자동 실행하지는 않습니다.
+
+### Appending And Replaying Events
+
+```kotlin
+import me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventSourcingTemplate
+import me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventStoreEvent
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+
+@Service
+class TodoCommandService(
+    private val events: EventSourcingTemplate,
+) {
+    @Transactional
+    fun complete(todoId: String, expectedVersion: Long) {
+        events.append(
+            streamId = "todo-$todoId",
+            expectedVersion = expectedVersion,
+            events =
+                listOf(
+                    EventStoreEvent(
+                        eventType = "todo.completed",
+                        payloadJson = """{"id":"$todoId"}""",
+                    ),
+                ),
+        )
+    }
+
+    fun history(todoId: String): List<String> =
+        events.fold("todo-$todoId", emptyList()) { eventTypes, event ->
+            eventTypes + event.eventType
+        }
 }
 ```
 
@@ -850,6 +940,7 @@ class GithubService(
 `kopring-bricks-test-support` provides small test doubles for application tests that consume the starters:
 
 - `RecordingAuditEventPublisher`
+- `InMemoryEventStore`
 - `InMemoryOutboxEventRepository`
 - `RecordingOutboxEventPublisher`
 
