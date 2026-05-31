@@ -19,6 +19,20 @@ assert_contains() {
   grep -Fq -- "$expected" "$path" || fail "expected $path to contain: $expected"
 }
 
+assert_section_not_contains() {
+  local path="$1"
+  local start="$2"
+  local end="$3"
+  local unexpected="$4"
+
+  ! awk -v start="$start" -v end="$end" -v unexpected="$unexpected" '
+    $0 == start { in_section = 1; next }
+    $0 == end { in_section = 0 }
+    in_section && index($0, unexpected) > 0 { found = 1 }
+    END { exit found ? 0 : 1 }
+  ' "$path" || fail "expected $path section $start not to contain: $unexpected"
+}
+
 copy_repo() {
   local target="$1"
 
@@ -36,7 +50,12 @@ test_docs_facts_output() {
   "$ROOT_DIR/scripts/docs-facts.sh" --output "$output_file"
 
   assert_file_exists "$output_file"
-  assert_contains "$output_file" '- `support:jdbc-autoconfigure` (autoconfigure)'
+  assert_contains "$output_file" '- `support:jdbc-autoconfigure` (support)'
+  assert_section_not_contains \
+    "$output_file" \
+    '## Auto Configurations' \
+    '## Configuration Properties' \
+    '### `support:jdbc-autoconfigure`'
   assert_contains "$output_file" '## Samples'
   assert_contains "$output_file" '- `samples:todo-api`'
 }
