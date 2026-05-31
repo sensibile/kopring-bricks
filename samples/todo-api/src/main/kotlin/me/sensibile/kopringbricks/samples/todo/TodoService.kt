@@ -39,10 +39,10 @@ class TodoService(
         id: Long,
         ifMatchHeader: String?,
     ): Todo {
-        val existing = get(id)
-        ifMatchValidator.requireMatch(ifMatchHeader, existing.version)
-
-        val completed = repository.complete(id)
+        val completed =
+            repository.complete(id) { current ->
+                ifMatchValidator.requireMatch(ifMatchHeader, current.version)
+            }
         publishAuditEvent(completed, TODO_COMPLETED)
         appendOutboxEvent(completed, TODO_COMPLETED)
 

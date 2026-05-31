@@ -25,15 +25,25 @@ class TodoRepository {
         return todo
     }
 
-    fun complete(id: Long): Todo {
-        val existing = todos[id] ?: throw TodoNotFoundException(id)
-        val completed =
-            existing.copy(
-                completed = true,
-                version = existing.version + VERSION_INCREMENT,
-            )
-        todos[id] = completed
-        return completed
+    fun complete(
+        id: Long,
+        validate: (Todo) -> Unit = {},
+    ): Todo {
+        var completed: Todo? = null
+
+        todos.compute(id) { _, existing ->
+            val current = existing ?: throw TodoNotFoundException(id)
+
+            validate(current)
+
+            current
+                .copy(
+                    completed = true,
+                    version = current.version + VERSION_INCREMENT,
+                ).also { completed = it }
+        }
+
+        return requireNotNull(completed)
     }
 
     fun clear() {
