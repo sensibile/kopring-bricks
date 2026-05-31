@@ -11,4 +11,10 @@ class ProblemDetailsStarterSmokeTests {
         assertThatCode(() -> Class.forName("me.sensibile.kopringbricks.web.problem.autoconfigure.ProblemDetailsAutoConfiguration"))
             .doesNotThrowAnyException();
     }
+
+    @Test
+    void exposesWebSupportDependenciesOnClasspath() {
+        assertThatCode(() -> Class.forName("org.springframework.http.ProblemDetail"))
+            .doesNotThrowAnyException();
+    }
 }

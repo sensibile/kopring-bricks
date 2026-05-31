@@ -11,4 +11,10 @@ class ConcurrencyControlStarterSmokeTests {
         assertThatCode(() -> Class.forName("me.sensibile.kopringbricks.web.concurrency.autoconfigure.ConcurrencyControlAutoConfiguration"))
             .doesNotThrowAnyException();
     }
+
+    @Test
+    void exposesWebSupportDependenciesOnClasspath() {
+        assertThatCode(() -> Class.forName("org.springframework.web.context.request.NativeWebRequest"))
+            .doesNotThrowAnyException();
+    }
 }
