@@ -48,6 +48,34 @@ class ConcurrencyControlAutoConfigurationTests {
     }
 
     @Test
+    fun `backs off when custom if match validator is registered`() {
+        val customValidator =
+            IfMatchValidator(
+                ETagGenerator { "\"custom-$it\"" },
+                ConcurrencyControlProperties(),
+            )
+
+        contextRunner
+            .withBean(IfMatchValidator::class.java, Supplier { customValidator })
+            .run { context ->
+                assertThat(context).hasSingleBean(IfMatchValidator::class.java)
+                assertThat(context.getBean(IfMatchValidator::class.java)).isSameAs(customValidator)
+            }
+    }
+
+    @Test
+    fun `backs off when custom idempotency key resolver is registered`() {
+        val customResolver = IdempotencyKeyResolver(ConcurrencyControlProperties())
+
+        contextRunner
+            .withBean(IdempotencyKeyResolver::class.java, Supplier { customResolver })
+            .run { context ->
+                assertThat(context).hasSingleBean(IdempotencyKeyResolver::class.java)
+                assertThat(context.getBean(IdempotencyKeyResolver::class.java)).isSameAs(customResolver)
+            }
+    }
+
+    @Test
     fun `generates strong etag by default`() {
         val generator = DefaultETagGenerator(ConcurrencyControlProperties())
 
