@@ -9,7 +9,7 @@ Use it as factual source material when updating human-authored documentation.
 - `http-client:vt-rest-client-starter` (starter)
 - `jdbc-client:vt-jdbc-client-autoconfigure` (autoconfigure)
 - `jdbc-client:vt-jdbc-client-starter` (starter)
-- `support:jdbc-autoconfigure` (autoconfigure)
+- `support:jdbc-autoconfigure` (support)
 - `observability:logging-observation-autoconfigure` (autoconfigure)
 - `observability:logging-observation-starter` (starter)
 - `observability:micrometer-tracing-autoconfigure` (autoconfigure)
@@ -61,12 +61,6 @@ EnvironmentPostProcessor classes:
 
 AutoConfiguration classes:
 - `me.sensibile.kopringbricks.jdbcclient.autoconfigure.VtJdbcClientAutoConfiguration`
-
-EnvironmentPostProcessor classes:
-
-### `support:jdbc-autoconfigure`
-
-AutoConfiguration classes:
 
 EnvironmentPostProcessor classes:
 

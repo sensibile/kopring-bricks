@@ -60,6 +60,17 @@ module_kind() {
   local name
   name="$(module_name "$1")"
 
+  case "$1" in
+    support:*)
+      printf 'support'
+      return
+      ;;
+    samples:*)
+      printf 'sample'
+      return
+      ;;
+  esac
+
   case "$name" in
     *-autoconfigure)
       printf 'autoconfigure'
@@ -71,17 +82,7 @@ module_kind() {
       printf 'test-support'
       ;;
     *)
-      case "$1" in
-        support:*)
-          printf 'support'
-          ;;
-        samples:*)
-          printf 'sample'
-          ;;
-        *)
-          printf 'module'
-          ;;
-      esac
+      printf 'module'
       ;;
   esac
 }
@@ -262,7 +263,8 @@ EOF
   done
 }
 
-tmp_file="$(mktemp)"
+mkdir -p "$(dirname "$OUTPUT_PATH")"
+tmp_file="$(mktemp "$(dirname "$OUTPUT_PATH")/.project-facts.XXXXXX")"
 generate > "$tmp_file"
 
 if [[ "$CHECK" == "true" ]]; then
@@ -282,6 +284,5 @@ if [[ "$CHECK" == "true" ]]; then
   exit 0
 fi
 
-mkdir -p "$(dirname "$OUTPUT_PATH")"
 mv "$tmp_file" "$OUTPUT_PATH"
 echo "Wrote $OUTPUT_PATH"
