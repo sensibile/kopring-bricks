@@ -20,10 +20,11 @@ Options:
 EOF
 }
 
-for arg in "$@"; do
-  case "$arg" in
+while [[ $# -gt 0 ]]; do
+  case "$1" in
     --check)
       CHECK=true
+      shift
       ;;
     --output)
       shift
@@ -32,13 +33,14 @@ for arg in "$@"; do
         echo "--output requires a path" >&2
         exit 2
       }
+      shift
       ;;
     --help|-h)
       usage
       exit 0
       ;;
     *)
-      echo "Unknown option: $arg" >&2
+      echo "Unknown option: $1" >&2
       usage >&2
       exit 2
       ;;

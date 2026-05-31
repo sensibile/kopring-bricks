@@ -802,11 +802,11 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
 
 @Service
-class UserService {
+class UserService(
+    private val userRepository: UserRepository,
+) {
     @Cacheable("users")
-    fun findUser(userId: Long): User {
-        TODO("load user")
-    }
+    fun findUser(userId: Long): User = userRepository.findById(userId)
 }
 ```
 
