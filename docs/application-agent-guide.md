@@ -21,7 +21,7 @@ Use `kopring-bricks` when an application needs one of the existing opinionated S
 - `outbox-starter` for transactional outbox event storage, polling publication flow, and PostgreSQL-backed persistence.
 - `kopring-bricks-test-support` for recording audit/outbox and in-memory event-sourcing test doubles in application integration tests.
 
-Prefer starter modules in applications. Autoconfigure modules are library internals unless an application has a specific reason to depend on them directly.
+Prefer starter modules in applications. Autoconfigure and `support/*` modules are library internals unless an application has a specific reason to depend on them directly.
 
 Planned rule or feature-flag work should follow [ADR 0001: Rule Decision Starter Boundary](adr/0001-rule-decision-starter.md). Until that starter exists, keep rule evaluation local to the application and use existing bricks around the edges: `audit-log-starter` for rule changes, `outbox-starter` for change publication, and `concurrency-control-starter` for versioned admin updates.
 

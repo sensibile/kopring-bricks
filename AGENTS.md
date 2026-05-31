@@ -13,6 +13,9 @@ Prefer these boundaries:
 - `*-autoconfigure` modules own auto-configuration, properties, default beans,
   and conditional behavior.
 - `*-starter` modules are dependency bundles for applications.
+- `support/*` modules own internal helper code shared by starters. Do not treat
+  them as application-facing starters or document them as dependencies for app
+  consumers.
 - `test-support` owns reusable fakes, recorders, and helpers for applications
   consuming the starters.
 - `samples` demonstrates consumer behavior without becoming the source of
