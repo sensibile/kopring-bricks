@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import me.sensibile.kopringbricks.httpclient.autoconfigure.VtRestClientFactory
 import me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxPollingService
 import me.sensibile.kopringbricks.testsupport.audit.RecordingAuditEventPublisher
+import me.sensibile.kopringbricks.testsupport.eventsourcing.InMemoryEventStore
 import me.sensibile.kopringbricks.testsupport.outbox.InMemoryOutboxEventRepository
 import me.sensibile.kopringbricks.testsupport.outbox.RecordingOutboxEventPublisher
 import org.assertj.core.api.Assertions.assertThat
@@ -48,6 +49,9 @@ class TodoApiApplicationTests {
     private lateinit var auditEvents: RecordingAuditEventPublisher
 
     @Autowired
+    private lateinit var eventStore: InMemoryEventStore
+
+    @Autowired
     private lateinit var outboxRepository: InMemoryOutboxEventRepository
 
     @Autowired
@@ -63,6 +67,7 @@ class TodoApiApplicationTests {
     fun resetState() {
         repository.clear()
         auditEvents.clear()
+        eventStore.clear()
         outboxRepository.clear()
         outboxPublisher.clear()
     }
@@ -114,7 +119,7 @@ class TodoApiApplicationTests {
     }
 
     @Test
-    fun `records audit and outbox events for todo changes`() {
+    fun `records event sourcing audit and outbox events for todo changes`() {
         createTodo("publish sample")
 
         val etag = todoEtag(id = 1)
@@ -129,6 +134,14 @@ class TodoApiApplicationTests {
         val pollingResult = outboxPollingService.poll()
 
         assertAll(
+            {
+                assertThat(eventStore.load("todo-1").map { it.eventType })
+                    .containsExactly("todo.created", "todo.completed")
+            },
+            {
+                assertThat(eventStore.load("todo-1").map { it.streamVersion })
+                    .containsExactly(1L, 2L)
+            },
             { assertThat(auditEvents.events.map { it.action }).containsExactly("todo.created", "todo.completed") },
             { assertThat(outboxRepository.events).hasSize(2) },
             { assertThat(pollingResult.published).isEqualTo(2) },
@@ -146,12 +159,14 @@ class TodoApiApplicationTests {
         createTodo(title)
 
         val auditMetadata = requireNotNull(auditEvents.events.single().metadataJson)
+        val eventStorePayload = eventStore.load("todo-1").single().payloadJson
         val outboxPayload = outboxRepository.events.single().payloadJson
 
         assertAll(
             { assertThat(auditMetadata).contains("""\"todo\"""") },
             { assertThat(auditMetadata).contains("""\n""") },
             { assertThat(auditMetadata).contains("""\b""") },
+            { assertThat(eventStorePayload).isEqualTo(auditMetadata) },
             { assertThat(outboxPayload).isEqualTo(auditMetadata) },
         )
     }
