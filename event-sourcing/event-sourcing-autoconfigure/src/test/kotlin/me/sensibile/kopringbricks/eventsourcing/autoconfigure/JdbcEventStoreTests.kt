@@ -3,8 +3,10 @@ package me.sensibile.kopringbricks.eventsourcing.autoconfigure
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.springframework.core.io.ClassPathResource
+import org.springframework.core.io.support.EncodedResource
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.jdbc.datasource.DriverManagerDataSource
+import org.springframework.jdbc.datasource.init.ScriptUtils
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.postgresql.PostgreSQLContainer
@@ -18,15 +20,17 @@ import kotlin.test.Test
 
 @Testcontainers
 class JdbcEventStoreTests {
+    private lateinit var dataSource: DataSource
     private lateinit var jdbcClient: JdbcClient
     private lateinit var eventStore: JdbcEventStore
 
     @BeforeTest
     fun setUp() {
-        jdbcClient = JdbcClient.create(dataSource())
+        dataSource = createDataSource()
+        jdbcClient = JdbcClient.create(dataSource)
         eventStore = JdbcEventStore(jdbcClient, "event_store", Clock.fixed(RECORDED_AT, ZoneOffset.UTC))
 
-        jdbcClient.sql(schemaSql()).update()
+        applySchema()
         jdbcClient.sql("truncate table event_store").update()
     }
 
@@ -140,18 +144,21 @@ class JdbcEventStoreTests {
             occurredAt = OCCURRED_AT,
         )
 
-    private fun dataSource(): DataSource =
+    private fun createDataSource(): DataSource =
         DriverManagerDataSource(
             POSTGRES.jdbcUrl,
             POSTGRES.username,
             POSTGRES.password,
         )
 
-    private fun schemaSql(): String =
-        ClassPathResource("META-INF/kopring-bricks/event-sourcing/schema-postgresql.sql")
-            .inputStream
-            .bufferedReader()
-            .use { it.readText() }
+    private fun applySchema() {
+        dataSource.connection.use { connection ->
+            ScriptUtils.executeSqlScript(
+                connection,
+                EncodedResource(ClassPathResource("META-INF/kopring-bricks/event-sourcing/schema-postgresql.sql")),
+            )
+        }
+    }
 
     private companion object {
         private val OCCURRED_AT: Instant = Instant.parse("2026-06-01T00:00:00Z")
