@@ -333,6 +333,9 @@ EnvironmentPostProcessor classes:
 - `api(libs.spring.boot.jdbc)`
 - `api(libs.spring.jdbc)`
 - `testImplementation(libs.spring.boot.starter.jdbc)`
+- `testImplementation(libs.postgresql)`
+- `testImplementation(libs.testcontainers.junit.jupiter)`
+- `testImplementation(libs.testcontainers.postgresql)`
 
 ### `event-sourcing:event-sourcing-starter`
 
