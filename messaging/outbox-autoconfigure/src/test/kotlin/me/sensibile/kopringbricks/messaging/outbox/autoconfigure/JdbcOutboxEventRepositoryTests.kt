@@ -135,16 +135,16 @@ class JdbcOutboxEventRepositoryTests {
     }
 
     private fun JdbcOutboxEventRepository.findEvent(id: String): OutboxEvent =
-        claimAllSavedEvents()
+        loadAllSavedEvents()
             .single { it.id == id }
 
-    private fun claimAllSavedEvents(): List<OutboxEvent> =
+    private fun loadAllSavedEvents(): List<OutboxEvent> =
         jdbcClient
             .sql(
                 """
                 select *
                 from outbox_event
-                order by created_at
+                order by created_at, id
                 """.trimIndent(),
             ).query { resultSet, _ ->
                 OutboxEvent(

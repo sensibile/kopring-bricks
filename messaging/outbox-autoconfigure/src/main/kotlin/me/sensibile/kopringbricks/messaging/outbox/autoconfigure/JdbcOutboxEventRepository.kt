@@ -61,7 +61,7 @@ class JdbcOutboxEventRepository(
                 status = :claimedStatus
                 and claimed_at <= :claimExpiredBefore
             )
-            order by created_at
+            order by created_at, id
             for update skip locked
             limit :limit
         ), updated as (
@@ -74,7 +74,7 @@ class JdbcOutboxEventRepository(
         )
         select *
         from updated
-        order by created_at
+        order by created_at, id
         """.trimIndent()
 
     private val markPublishedSql =
