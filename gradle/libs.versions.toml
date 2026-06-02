@@ -2,6 +2,7 @@
 kotlin = "2.3.20"
 spring-boot = "4.0.6"
 resilience4j = "2.4.0"
+testcontainers = "2.0.5"
 
 [libraries]
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
@@ -41,9 +42,12 @@ context-propagation = { module = "io.micrometer:context-propagation" }
 jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+postgresql = { module = "org.postgresql:postgresql" }
 resilience4j-micrometer = { module = "io.github.resilience4j:resilience4j-micrometer", version.ref = "resilience4j" }
 resilience4j-spring-boot4 = { module = "io.github.resilience4j:resilience4j-spring-boot4", version.ref = "resilience4j" }
 slf4j-api = { module = "org.slf4j:slf4j-api" }
+testcontainers-junit-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

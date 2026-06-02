@@ -6,6 +6,8 @@ import org.springframework.transaction.annotation.Transactional
 import java.sql.ResultSet
 import java.time.Clock
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class JdbcEventStore(
     private val jdbcClient: JdbcClient,
@@ -131,8 +133,8 @@ class JdbcEventStore(
             .param("eventVersion", event.eventVersion)
             .param("payloadJson", event.payloadJson)
             .param("metadataJson", event.metadataJson)
-            .param("occurredAt", event.occurredAt)
-            .param("recordedAt", recordedAt)
+            .param("occurredAt", event.occurredAt.toOffsetDateTime())
+            .param("recordedAt", recordedAt.toOffsetDateTime())
             .update()
     }
 
@@ -163,6 +165,8 @@ class JdbcEventStore(
             eventVersion = resultSet.getInt("event_version"),
             payloadJson = resultSet.getString("payload"),
             metadataJson = resultSet.getString("metadata"),
-            occurredAt = resultSet.getObject("occurred_at", Instant::class.java),
+            occurredAt = resultSet.getObject("occurred_at", OffsetDateTime::class.java).toInstant(),
         )
+
+    private fun Instant.toOffsetDateTime(): OffsetDateTime = OffsetDateTime.ofInstant(this, ZoneOffset.UTC)
 }

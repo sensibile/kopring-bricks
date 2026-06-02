@@ -339,6 +339,26 @@ kopring:
 
 PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/event-sourcing/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 자동 실행하지는 않습니다.
 
+Flyway나 Liquibase를 쓰는 애플리케이션은 위 스키마를 애플리케이션 migration에 복사해 적용하세요. Spring resource로 직접 확인하려면 다음 경로를 사용합니다.
+
+```kotlin
+import org.springframework.core.io.ClassPathResource
+
+val schema = ClassPathResource("META-INF/kopring-bricks/event-sourcing/schema-postgresql.sql")
+```
+
+### EventStore Contract
+
+`EventStore` 구현체는 다음 계약을 지켜야 합니다.
+
+- `streamId`가 blank이면 `IllegalArgumentException` 발생
+- `expectedVersion`이 0보다 작으면 `IllegalArgumentException` 발생
+- append할 이벤트 목록이 비어 있으면 `IllegalArgumentException` 발생
+- `fromVersion`이 1보다 작으면 `IllegalArgumentException` 발생
+- append 성공 시 `expectedVersion + 1`부터 연속된 stream version 부여
+- 현재 stream version이 `expectedVersion`과 다르면 `EventStreamVersionConflictException` 발생
+- `load(streamId, fromVersion)`은 같은 stream의 `fromVersion` 이상 이벤트를 stream version 오름차순으로 반환
+
 ### Appending And Replaying Events
 
 ```kotlin
