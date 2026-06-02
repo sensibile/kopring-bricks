@@ -1,1 +1,2 @@
 me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventSourcingAutoConfiguration
+me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventSourcingFlywayAutoConfiguration

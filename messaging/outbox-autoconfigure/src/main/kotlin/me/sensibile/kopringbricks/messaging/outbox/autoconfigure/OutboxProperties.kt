@@ -14,6 +14,11 @@ data class OutboxProperties(
     data class Jdbc(
         val tableName: String = "outbox_event",
         val dialect: OutboxJdbcDialect = OutboxJdbcDialect.AUTO,
+        val flyway: Flyway = Flyway(),
+    )
+
+    data class Flyway(
+        val enabled: Boolean = false,
     )
 
     data class Polling(

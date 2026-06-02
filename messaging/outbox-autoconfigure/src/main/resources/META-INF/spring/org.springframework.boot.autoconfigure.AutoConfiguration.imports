@@ -1,1 +1,2 @@
 me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxAutoConfiguration
+me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxFlywayAutoConfiguration

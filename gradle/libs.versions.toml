@@ -14,6 +14,7 @@ spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gra
 
 spring-boot = { module = "org.springframework.boot:spring-boot" }
 spring-boot-autoconfigure = { module = "org.springframework.boot:spring-boot-autoconfigure" }
+spring-boot-flyway = { module = "org.springframework.boot:spring-boot-flyway" }
 spring-boot-jdbc = { module = "org.springframework.boot:spring-boot-jdbc" }
 spring-boot-restclient = { module = "org.springframework.boot:spring-boot-restclient" }
 spring-boot-webmvc = { module = "org.springframework.boot:spring-boot-webmvc" }
@@ -39,6 +40,7 @@ spring-webmvc = { module = "org.springframework:spring-webmvc" }
 
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
 context-propagation = { module = "io.micrometer:context-propagation" }
+flyway-core = { module = "org.flywaydb:flyway-core" }
 jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
