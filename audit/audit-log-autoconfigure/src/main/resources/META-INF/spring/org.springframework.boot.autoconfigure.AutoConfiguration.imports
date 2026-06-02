@@ -1,1 +1,2 @@
 me.sensibile.kopringbricks.auditlog.autoconfigure.AuditLogAutoConfiguration
+me.sensibile.kopringbricks.auditlog.autoconfigure.AuditLogFlywayAutoConfiguration

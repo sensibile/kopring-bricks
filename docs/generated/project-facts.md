@@ -122,6 +122,7 @@ EnvironmentPostProcessor classes:
 
 AutoConfiguration classes:
 - `me.sensibile.kopringbricks.auditlog.autoconfigure.AuditLogAutoConfiguration`
+- `me.sensibile.kopringbricks.auditlog.autoconfigure.AuditLogFlywayAutoConfiguration`
 
 EnvironmentPostProcessor classes:
 
@@ -129,6 +130,7 @@ EnvironmentPostProcessor classes:
 
 AutoConfiguration classes:
 - `me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventSourcingAutoConfiguration`
+- `me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventSourcingFlywayAutoConfiguration`
 
 EnvironmentPostProcessor classes:
 
@@ -136,6 +138,7 @@ EnvironmentPostProcessor classes:
 
 AutoConfiguration classes:
 - `me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxAutoConfiguration`
+- `me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OutboxFlywayAutoConfiguration`
 
 EnvironmentPostProcessor classes:
 
@@ -219,6 +222,8 @@ EnvironmentPostProcessor classes:
 
 - `api(libs.spring.boot.autoconfigure)`
 - `api(libs.spring.boot.jdbc)`
+- `compileOnly(libs.flyway.core)`
+- `testImplementation(libs.flyway.core)`
 
 ### `observability:logging-observation-autoconfigure`
 
@@ -319,6 +324,11 @@ EnvironmentPostProcessor classes:
 - `api(libs.spring.boot.jdbc)`
 - `api(libs.spring.jdbc)`
 - `api(libs.slf4j.api)`
+- `compileOnly(libs.flyway.core)`
+- `compileOnly(libs.spring.boot.flyway)`
+- `testImplementation(libs.flyway.core)`
+- `testImplementation(libs.flyway.database.postgresql)`
+- `testImplementation(libs.spring.boot.flyway)`
 - `testImplementation(libs.spring.boot.starter.jdbc)`
 - `testImplementation(libs.postgresql)`
 - `testImplementation(libs.testcontainers.junit.jupiter)`
@@ -335,6 +345,11 @@ EnvironmentPostProcessor classes:
 - `api(libs.spring.boot.autoconfigure)`
 - `api(libs.spring.boot.jdbc)`
 - `api(libs.spring.jdbc)`
+- `compileOnly(libs.flyway.core)`
+- `compileOnly(libs.spring.boot.flyway)`
+- `testImplementation(libs.flyway.core)`
+- `testImplementation(libs.flyway.database.postgresql)`
+- `testImplementation(libs.spring.boot.flyway)`
 - `testImplementation(libs.spring.boot.starter.jdbc)`
 - `testImplementation(libs.postgresql)`
 - `testImplementation(libs.testcontainers.junit.jupiter)`
@@ -352,6 +367,11 @@ EnvironmentPostProcessor classes:
 - `api(libs.spring.boot.jdbc)`
 - `api(libs.spring.jdbc)`
 - `api(libs.slf4j.api)`
+- `compileOnly(libs.flyway.core)`
+- `compileOnly(libs.spring.boot.flyway)`
+- `testImplementation(libs.flyway.core)`
+- `testImplementation(libs.flyway.database.postgresql)`
+- `testImplementation(libs.spring.boot.flyway)`
 - `testImplementation(libs.spring.boot.starter.jdbc)`
 - `testImplementation(libs.postgresql)`
 - `testImplementation(libs.testcontainers.junit.jupiter)`
@@ -382,8 +402,15 @@ EnvironmentPostProcessor classes:
 - `implementation(libs.jackson.databind)`
 - `implementation(libs.spring.boot.starter.validation)`
 - `testImplementation(project(":test-support:kopring-bricks-test-support"))`
+- `testImplementation(libs.flyway.core)`
+- `testImplementation(libs.flyway.database.postgresql)`
+- `testImplementation(libs.postgresql)`
+- `testImplementation(libs.spring.boot.flyway)`
+- `testImplementation(libs.spring.boot.starter.jdbc)`
 - `testImplementation(libs.spring.boot.starter.webmvc.test)`
 - `testImplementation(libs.spring.boot.starter.test)`
+- `testImplementation(libs.testcontainers.junit.jupiter)`
+- `testImplementation(libs.testcontainers.postgresql)`
 - `testImplementation(libs.kotlin.test.junit5)`
 - `testRuntimeOnly(libs.junit.platform.launcher)`
 

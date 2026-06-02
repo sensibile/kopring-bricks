@@ -316,6 +316,8 @@ dependencies {
     implementation("me.sensibile:event-sourcing-starter:0.0.1-SNAPSHOT")
     // Optional, when using the PostgreSQL JDBC-backed event store:
     // implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    // Optional, when applying the bundled PostgreSQL schema through Flyway:
+    // implementation("org.springframework.boot:spring-boot-starter-flyway")
 }
 ```
 
@@ -329,6 +331,8 @@ kopring:
       jdbc:
         table-name: event_store
         dialect: auto
+        flyway:
+          enabled: false
 ```
 
 ### PostgreSQL JDBC Storage
@@ -337,14 +341,31 @@ kopring:
 
 `jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.event-sourcing.jdbc.dialect=postgresql`을 명시하세요.
 
-PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/event-sourcing/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 자동 실행하지는 않습니다.
+PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/event-sourcing/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 기본으로 자동 실행하지는 않습니다.
 
-Flyway나 Liquibase를 쓰는 애플리케이션은 위 스키마를 애플리케이션 migration에 복사해 적용하세요. Spring resource로 직접 확인하려면 다음 경로를 사용합니다.
+Flyway를 쓰는 애플리케이션은 `spring-boot-starter-flyway`를 추가한 뒤 `kopring.bricks.event-sourcing.jdbc.flyway.enabled=true`로 bundled repeatable migration location을 추가할 수 있습니다. 이 opt-in은 기본 테이블명 `event_store`에서만 동작합니다. 테이블명을 바꾼 경우에는 아래 스키마를 애플리케이션 migration으로 복사해 조정하세요.
+
+```yaml
+kopring:
+  bricks:
+    event-sourcing:
+      jdbc:
+        flyway:
+          enabled: true
+```
+
+Liquibase를 쓰거나 migration을 직접 관리하는 애플리케이션은 위 스키마를 애플리케이션 migration에 복사해 적용하세요. Spring resource로 직접 확인하려면 다음 경로를 사용합니다.
 
 ```kotlin
 import org.springframework.core.io.ClassPathResource
 
 val schema = ClassPathResource("META-INF/kopring-bricks/event-sourcing/schema-postgresql.sql")
+```
+
+Flyway location 상수도 제공합니다.
+
+```kotlin
+import me.sensibile.kopringbricks.eventsourcing.autoconfigure.EVENT_SOURCING_POSTGRESQL_FLYWAY_LOCATION
 ```
 
 ### EventStore Contract
@@ -425,6 +446,8 @@ dependencies {
     implementation("me.sensibile:outbox-starter:0.0.1-SNAPSHOT")
     // Optional, when using the PostgreSQL JDBC-backed repository:
     // implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    // Optional, when applying the bundled PostgreSQL schema through Flyway:
+    // implementation("org.springframework.boot:spring-boot-starter-flyway")
 }
 ```
 
@@ -438,6 +461,8 @@ kopring:
       jdbc:
         table-name: outbox_event
         dialect: auto
+        flyway:
+          enabled: false
       polling:
         claim-limit: 100
         claim-timeout: 5m
@@ -459,7 +484,24 @@ kopring:
 
 `jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.outbox.jdbc.dialect=postgresql`을 명시하세요.
 
-PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/outbox/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 자동 실행하지는 않습니다.
+PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/outbox/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 기본으로 자동 실행하지는 않습니다.
+
+Flyway를 쓰는 애플리케이션은 `spring-boot-starter-flyway`를 추가한 뒤 `kopring.bricks.outbox.jdbc.flyway.enabled=true`로 bundled repeatable migration location을 추가할 수 있습니다. 이 opt-in은 기본 테이블명 `outbox_event`에서만 동작합니다. 테이블명을 바꾼 경우에는 스키마를 애플리케이션 migration으로 복사해 조정하세요.
+
+```yaml
+kopring:
+  bricks:
+    outbox:
+      jdbc:
+        flyway:
+          enabled: true
+```
+
+Flyway location 상수도 제공합니다.
+
+```kotlin
+import me.sensibile.kopringbricks.messaging.outbox.autoconfigure.OUTBOX_POSTGRESQL_FLYWAY_LOCATION
+```
 
 ### Appending Events
 
@@ -536,6 +578,8 @@ dependencies {
     implementation("me.sensibile:audit-log-starter:0.0.1-SNAPSHOT")
     // Optional, when using the PostgreSQL JDBC-backed repository:
     // implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    // Optional, when applying the bundled PostgreSQL schema through Flyway:
+    // implementation("org.springframework.boot:spring-boot-starter-flyway")
 }
 ```
 
@@ -551,6 +595,8 @@ kopring:
       jdbc:
         table-name: audit_log
         dialect: auto
+        flyway:
+          enabled: false
 ```
 
 ### PostgreSQL JDBC Storage
@@ -559,7 +605,24 @@ kopring:
 
 `jdbc.dialect=auto`는 `spring.datasource.url`, `spring.datasource.jdbc-url`, `spring.datasource.hikari.jdbc-url`이 `jdbc:postgresql:`일 때만 JDBC 저장소를 켭니다. 커스텀 `DataSource`처럼 URL 감지가 어려운 경우에는 `kopring.bricks.audit-log.jdbc.dialect=postgresql`을 명시하세요.
 
-PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/audit-log/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 자동 실행하지는 않습니다.
+PostgreSQL 테이블 예시는 `META-INF/kopring-bricks/audit-log/schema-postgresql.sql`에 포함되어 있습니다. starter가 운영 DB에 DDL을 기본으로 자동 실행하지는 않습니다.
+
+Flyway를 쓰는 애플리케이션은 `spring-boot-starter-flyway`를 추가한 뒤 `kopring.bricks.audit-log.jdbc.flyway.enabled=true`로 bundled repeatable migration location을 추가할 수 있습니다. 이 opt-in은 기본 테이블명 `audit_log`에서만 동작합니다. 테이블명을 바꾼 경우에는 스키마를 애플리케이션 migration으로 복사해 조정하세요.
+
+```yaml
+kopring:
+  bricks:
+    audit-log:
+      jdbc:
+        flyway:
+          enabled: true
+```
+
+Flyway location 상수도 제공합니다.
+
+```kotlin
+import me.sensibile.kopringbricks.auditlog.autoconfigure.AUDIT_LOG_POSTGRESQL_FLYWAY_LOCATION
+```
 
 ### Publishing Events
 

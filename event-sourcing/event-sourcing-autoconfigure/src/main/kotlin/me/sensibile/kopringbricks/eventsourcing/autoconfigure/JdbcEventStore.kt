@@ -9,7 +9,7 @@ import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
-class JdbcEventStore(
+open class JdbcEventStore(
     private val jdbcClient: JdbcClient,
     tableName: String,
     private val clock: Clock = Clock.systemUTC(),
@@ -56,7 +56,7 @@ class JdbcEventStore(
         """.trimIndent()
 
     @Transactional
-    override fun append(
+    open override fun append(
         streamId: String,
         expectedVersion: Long,
         events: List<EventStoreEvent>,
