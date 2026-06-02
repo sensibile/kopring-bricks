@@ -12,6 +12,9 @@ dependencies {
     api(libs.slf4j.api)
 
     testImplementation(libs.spring.boot.starter.jdbc)
+    testImplementation(libs.postgresql)
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.postgresql)
 }
 
 publishing {

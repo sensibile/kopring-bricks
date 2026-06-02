@@ -320,6 +320,9 @@ EnvironmentPostProcessor classes:
 - `api(libs.spring.jdbc)`
 - `api(libs.slf4j.api)`
 - `testImplementation(libs.spring.boot.starter.jdbc)`
+- `testImplementation(libs.postgresql)`
+- `testImplementation(libs.testcontainers.junit.jupiter)`
+- `testImplementation(libs.testcontainers.postgresql)`
 
 ### `audit:audit-log-starter`
 
@@ -350,6 +353,9 @@ EnvironmentPostProcessor classes:
 - `api(libs.spring.jdbc)`
 - `api(libs.slf4j.api)`
 - `testImplementation(libs.spring.boot.starter.jdbc)`
+- `testImplementation(libs.postgresql)`
+- `testImplementation(libs.testcontainers.junit.jupiter)`
+- `testImplementation(libs.testcontainers.postgresql)`
 
 ### `messaging:outbox-starter`
 
