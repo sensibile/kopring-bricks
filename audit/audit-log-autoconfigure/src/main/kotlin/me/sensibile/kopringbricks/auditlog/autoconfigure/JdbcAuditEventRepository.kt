@@ -1,6 +1,9 @@
 package me.sensibile.kopringbricks.auditlog.autoconfigure
 
 import org.springframework.jdbc.core.simple.JdbcClient
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class JdbcAuditEventRepository(
     private val jdbcClient: JdbcClient,
@@ -49,7 +52,7 @@ class JdbcAuditEventRepository(
         jdbcClient
             .sql(insertSql)
             .param("id", event.id)
-            .param("occurredAt", event.occurredAt)
+            .param("occurredAt", event.occurredAt.toOffsetDateTime())
             .param("actorType", event.actor.type)
             .param("actorId", event.actor.id)
             .param("actorName", event.actor.name)
@@ -66,4 +69,6 @@ class JdbcAuditEventRepository(
             .param("afterStateJson", event.afterStateJson)
             .update()
     }
+
+    private fun Instant.toOffsetDateTime(): OffsetDateTime = OffsetDateTime.ofInstant(this, ZoneOffset.UTC)
 }

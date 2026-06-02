@@ -4,6 +4,8 @@ import org.springframework.jdbc.core.simple.JdbcClient
 import java.sql.ResultSet
 import java.time.Duration
 import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneOffset
 
 class JdbcOutboxEventRepository(
     private val jdbcClient: JdbcClient,
@@ -48,10 +50,7 @@ class JdbcOutboxEventRepository(
 
     private val claimSql =
         """
-        update $tableName
-        set status = :claimedStatus,
-            claimed_at = :now
-        where id in (
+        with candidate as (
             select id
             from $tableName
             where (
@@ -62,11 +61,20 @@ class JdbcOutboxEventRepository(
                 status = :claimedStatus
                 and claimed_at <= :claimExpiredBefore
             )
-            order by created_at
+            order by created_at, id
             for update skip locked
             limit :limit
+        ), updated as (
+            update $tableName
+            set status = :claimedStatus,
+                claimed_at = :now
+            from candidate
+            where $tableName.id = candidate.id
+            returning $tableName.*
         )
-        returning *
+        select *
+        from updated
+        order by created_at, id
         """.trimIndent()
 
     private val markPublishedSql =
@@ -100,11 +108,11 @@ class JdbcOutboxEventRepository(
             .param("payloadJson", event.payloadJson)
             .param("headersJson", event.headersJson)
             .param("status", event.status.name)
-            .param("createdAt", event.createdAt)
-            .param("availableAt", event.availableAt)
-            .param("nextAttemptAt", event.nextAttemptAt)
-            .param("claimedAt", event.claimedAt)
-            .param("publishedAt", event.publishedAt)
+            .param("createdAt", event.createdAt.toOffsetDateTime())
+            .param("availableAt", event.availableAt.toOffsetDateTime())
+            .param("nextAttemptAt", event.nextAttemptAt.toOffsetDateTime())
+            .param("claimedAt", event.claimedAt?.toOffsetDateTime())
+            .param("publishedAt", event.publishedAt?.toOffsetDateTime())
             .param("retryCount", event.retryCount)
             .param("lastError", event.lastError)
             .update()
@@ -124,8 +132,8 @@ class JdbcOutboxEventRepository(
             .param("claimedStatus", OutboxEventStatus.CLAIMED.name)
             .param("pendingStatus", OutboxEventStatus.PENDING.name)
             .param("failedStatus", OutboxEventStatus.FAILED.name)
-            .param("now", now)
-            .param("claimExpiredBefore", now.minus(claimTimeout))
+            .param("now", now.toOffsetDateTime())
+            .param("claimExpiredBefore", now.minus(claimTimeout).toOffsetDateTime())
             .param("limit", limit)
             .query(::mapOutboxEvent)
             .list()
@@ -139,7 +147,7 @@ class JdbcOutboxEventRepository(
             .sql(markPublishedSql)
             .param("id", eventId)
             .param("status", OutboxEventStatus.PUBLISHED.name)
-            .param("publishedAt", publishedAt)
+            .param("publishedAt", publishedAt.toOffsetDateTime())
             .update()
     }
 
@@ -152,7 +160,7 @@ class JdbcOutboxEventRepository(
             .sql(markFailedSql)
             .param("id", eventId)
             .param("status", OutboxEventStatus.FAILED.name)
-            .param("nextAttemptAt", nextAttemptAt)
+            .param("nextAttemptAt", nextAttemptAt.toOffsetDateTime())
             .param("lastError", error)
             .update()
     }
@@ -170,12 +178,14 @@ class JdbcOutboxEventRepository(
             payloadJson = resultSet.getString("payload"),
             headersJson = resultSet.getString("headers"),
             status = OutboxEventStatus.valueOf(resultSet.getString("status")),
-            createdAt = resultSet.getObject("created_at", Instant::class.java),
-            availableAt = resultSet.getObject("available_at", Instant::class.java),
-            nextAttemptAt = resultSet.getObject("next_attempt_at", Instant::class.java),
-            claimedAt = resultSet.getObject("claimed_at", Instant::class.java),
-            publishedAt = resultSet.getObject("published_at", Instant::class.java),
+            createdAt = resultSet.getObject("created_at", OffsetDateTime::class.java).toInstant(),
+            availableAt = resultSet.getObject("available_at", OffsetDateTime::class.java).toInstant(),
+            nextAttemptAt = resultSet.getObject("next_attempt_at", OffsetDateTime::class.java).toInstant(),
+            claimedAt = resultSet.getObject("claimed_at", OffsetDateTime::class.java)?.toInstant(),
+            publishedAt = resultSet.getObject("published_at", OffsetDateTime::class.java)?.toInstant(),
             retryCount = resultSet.getInt("retry_count"),
             lastError = resultSet.getString("last_error"),
         )
+
+    private fun Instant.toOffsetDateTime(): OffsetDateTime = OffsetDateTime.ofInstant(this, ZoneOffset.UTC)
 }
