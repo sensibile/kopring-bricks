@@ -5,6 +5,10 @@ plugins {
 dependencies {
     api(libs.spring.boot.autoconfigure)
     api(libs.spring.boot.jdbc)
+
+    compileOnly(libs.flyway.core)
+
+    testImplementation(libs.flyway.core)
 }
 
 publishing {

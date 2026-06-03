@@ -1,7 +1,9 @@
 package me.sensibile.kopringbricks.messaging.outbox.autoconfigure
 
 import org.assertj.core.api.Assertions.assertThat
+import org.flywaydb.core.api.configuration.FluentConfiguration
 import org.mockito.Mockito.mock
+import org.springframework.boot.flyway.autoconfigure.FlywayConfigurationCustomizer
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler
@@ -12,7 +14,10 @@ import kotlin.test.Test
 class OutboxAutoConfigurationTests {
     private val contextRunner =
         ApplicationContextRunner()
-            .withUserConfiguration(OutboxAutoConfiguration::class.java)
+            .withUserConfiguration(
+                OutboxAutoConfiguration::class.java,
+                OutboxFlywayAutoConfiguration::class.java,
+            )
 
     @Test
     fun `creates logging repository and appender without jdbc client`() {
@@ -24,6 +29,7 @@ class OutboxAutoConfigurationTests {
             assertThat(context).hasSingleBean(LoggingOutboxEventRepository::class.java)
             assertThat(context).doesNotHaveBean(OutboxEventPublisher::class.java)
             assertThat(context).doesNotHaveBean(OutboxPollingService::class.java)
+            assertThat(context).doesNotHaveBean(FlywayConfigurationCustomizer::class.java)
         }
     }
 
@@ -136,6 +142,7 @@ class OutboxAutoConfigurationTests {
                 assertThat(context).doesNotHaveBean(OutboxEventRepository::class.java)
                 assertThat(context).doesNotHaveBean(OutboxEventAppender::class.java)
                 assertThat(context).doesNotHaveBean(OutboxPollingService::class.java)
+                assertThat(context).doesNotHaveBean(FlywayConfigurationCustomizer::class.java)
             }
     }
 
@@ -152,6 +159,53 @@ class OutboxAutoConfigurationTests {
                     .hasRootCauseInstanceOf(IllegalArgumentException::class.java)
                     .rootCause()
                     .hasMessageContaining("kopring.bricks.outbox.jdbc.tableName")
+            }
+    }
+
+    @Test
+    fun `creates flyway customizer when flyway schema is enabled`() {
+        contextRunner
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:postgresql://localhost:5432/app",
+                "kopring.bricks.outbox.jdbc.flyway.enabled=true",
+            ).run { context ->
+                assertThat(context).hasSingleBean(FlywayConfigurationCustomizer::class.java)
+
+                val configuration = FluentConfiguration().locations("classpath:db/migration")
+                context.getBean(FlywayConfigurationCustomizer::class.java).customize(configuration)
+
+                assertThat(configuration.locations.map { it.toString() })
+                    .containsExactlyInAnyOrder(
+                        "classpath:db/migration",
+                        OUTBOX_POSTGRESQL_FLYWAY_LOCATION,
+                    )
+            }
+    }
+
+    @Test
+    fun `does not create flyway customizer when datasource url is not postgresql`() {
+        contextRunner
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:h2:mem:testdb",
+                "kopring.bricks.outbox.jdbc.flyway.enabled=true",
+            ).run { context ->
+                assertThat(context).doesNotHaveBean(FlywayConfigurationCustomizer::class.java)
+            }
+    }
+
+    @Test
+    fun `rejects flyway schema with custom table name`() {
+        contextRunner
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:postgresql://localhost:5432/app",
+                "kopring.bricks.outbox.jdbc.flyway.enabled=true",
+                "kopring.bricks.outbox.jdbc.table-name=custom_outbox_event",
+            ).run { context ->
+                assertThat(context).hasFailed()
+                assertThat(context.startupFailure)
+                    .hasRootCauseInstanceOf(IllegalArgumentException::class.java)
+                    .rootCause()
+                    .hasMessageContaining("kopring.bricks.outbox.jdbc.flyway.enabled requires the default")
             }
     }
 

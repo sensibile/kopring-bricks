@@ -2,7 +2,9 @@ package me.sensibile.kopringbricks.auditlog.autoconfigure
 
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.flywaydb.core.api.configuration.FluentConfiguration
 import org.mockito.Mockito.mock
+import org.springframework.boot.flyway.autoconfigure.FlywayConfigurationCustomizer
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.jdbc.core.simple.JdbcClient
 import java.util.function.Supplier
@@ -11,7 +13,10 @@ import kotlin.test.Test
 class AuditLogAutoConfigurationTests {
     private val contextRunner =
         ApplicationContextRunner()
-            .withUserConfiguration(AuditLogAutoConfiguration::class.java)
+            .withUserConfiguration(
+                AuditLogAutoConfiguration::class.java,
+                AuditLogFlywayAutoConfiguration::class.java,
+            )
 
     @Test
     fun `creates logging repository and publisher without jdbc client`() {
@@ -20,6 +25,7 @@ class AuditLogAutoConfigurationTests {
             assertThat(context).hasSingleBean(AuditEventRepository::class.java)
             assertThat(context).hasSingleBean(AuditEventPublisher::class.java)
             assertThat(context).hasSingleBean(LoggingAuditEventRepository::class.java)
+            assertThat(context).doesNotHaveBean(FlywayConfigurationCustomizer::class.java)
         }
     }
 
@@ -105,6 +111,54 @@ class AuditLogAutoConfigurationTests {
                 assertThat(context).doesNotHaveBean(AuditLogProperties::class.java)
                 assertThat(context).doesNotHaveBean(AuditEventRepository::class.java)
                 assertThat(context).doesNotHaveBean(AuditEventPublisher::class.java)
+                assertThat(context).doesNotHaveBean(FlywayConfigurationCustomizer::class.java)
+            }
+    }
+
+    @Test
+    fun `creates flyway customizer when flyway schema is enabled`() {
+        contextRunner
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:postgresql://localhost:5432/app",
+                "kopring.bricks.audit-log.jdbc.flyway.enabled=true",
+            ).run { context ->
+                assertThat(context).hasSingleBean(FlywayConfigurationCustomizer::class.java)
+
+                val configuration = FluentConfiguration().locations("classpath:db/migration")
+                context.getBean(FlywayConfigurationCustomizer::class.java).customize(configuration)
+
+                assertThat(configuration.locations.map { it.toString() })
+                    .containsExactlyInAnyOrder(
+                        "classpath:db/migration",
+                        AUDIT_LOG_POSTGRESQL_FLYWAY_LOCATION,
+                    )
+            }
+    }
+
+    @Test
+    fun `does not create flyway customizer when datasource url is not postgresql`() {
+        contextRunner
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:h2:mem:testdb",
+                "kopring.bricks.audit-log.jdbc.flyway.enabled=true",
+            ).run { context ->
+                assertThat(context).doesNotHaveBean(FlywayConfigurationCustomizer::class.java)
+            }
+    }
+
+    @Test
+    fun `rejects flyway schema with custom table name`() {
+        contextRunner
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:postgresql://localhost:5432/app",
+                "kopring.bricks.audit-log.jdbc.flyway.enabled=true",
+                "kopring.bricks.audit-log.jdbc.table-name=custom_audit_log",
+            ).run { context ->
+                assertThat(context).hasFailed()
+                assertThat(context.startupFailure)
+                    .hasRootCauseInstanceOf(IllegalArgumentException::class.java)
+                    .rootCause()
+                    .hasMessageContaining("kopring.bricks.audit-log.jdbc.flyway.enabled requires the default")
             }
     }
 

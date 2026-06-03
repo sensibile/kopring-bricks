@@ -11,6 +11,11 @@ dependencies {
     api(libs.spring.jdbc)
     api(libs.slf4j.api)
 
+    compileOnly(libs.flyway.core)
+    compileOnly(libs.spring.boot.flyway)
+
+    testImplementation(libs.flyway.core)
+    testImplementation(libs.spring.boot.flyway)
     testImplementation(libs.spring.boot.starter.jdbc)
     testImplementation(libs.postgresql)
     testImplementation(libs.testcontainers.junit.jupiter)

@@ -15,6 +15,11 @@ data class AuditLogProperties(
     data class Jdbc(
         val tableName: String = "audit_log",
         val dialect: AuditLogJdbcDialect = AuditLogJdbcDialect.AUTO,
+        val flyway: Flyway = Flyway(),
+    )
+
+    data class Flyway(
+        val enabled: Boolean = false,
     )
 }
 

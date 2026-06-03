@@ -1,7 +1,9 @@
 package me.sensibile.kopringbricks.eventsourcing.autoconfigure
 
 import org.assertj.core.api.Assertions.assertThat
+import org.flywaydb.core.api.configuration.FluentConfiguration
 import org.mockito.Mockito.mock
+import org.springframework.boot.flyway.autoconfigure.FlywayConfigurationCustomizer
 import org.springframework.boot.test.context.runner.ApplicationContextRunner
 import org.springframework.jdbc.core.simple.JdbcClient
 import java.util.function.Supplier
@@ -10,7 +12,10 @@ import kotlin.test.Test
 class EventSourcingAutoConfigurationTests {
     private val contextRunner =
         ApplicationContextRunner()
-            .withUserConfiguration(EventSourcingAutoConfiguration::class.java)
+            .withUserConfiguration(
+                EventSourcingAutoConfiguration::class.java,
+                EventSourcingFlywayAutoConfiguration::class.java,
+            )
 
     @Test
     fun `does not create event store without jdbc client or custom store`() {
@@ -18,6 +23,7 @@ class EventSourcingAutoConfigurationTests {
             assertThat(context).hasSingleBean(EventSourcingProperties::class.java)
             assertThat(context).doesNotHaveBean(EventStore::class.java)
             assertThat(context).doesNotHaveBean(EventSourcingTemplate::class.java)
+            assertThat(context).doesNotHaveBean(FlywayConfigurationCustomizer::class.java)
         }
     }
 
@@ -87,6 +93,7 @@ class EventSourcingAutoConfigurationTests {
                 assertThat(context).doesNotHaveBean(EventSourcingProperties::class.java)
                 assertThat(context).doesNotHaveBean(EventStore::class.java)
                 assertThat(context).doesNotHaveBean(EventSourcingTemplate::class.java)
+                assertThat(context).doesNotHaveBean(FlywayConfigurationCustomizer::class.java)
             }
     }
 
@@ -103,6 +110,53 @@ class EventSourcingAutoConfigurationTests {
                     .hasRootCauseInstanceOf(IllegalArgumentException::class.java)
                     .rootCause()
                     .hasMessageContaining("kopring.bricks.event-sourcing.jdbc.tableName")
+            }
+    }
+
+    @Test
+    fun `creates flyway customizer when flyway schema is enabled`() {
+        contextRunner
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:postgresql://localhost:5432/app",
+                "kopring.bricks.event-sourcing.jdbc.flyway.enabled=true",
+            ).run { context ->
+                assertThat(context).hasSingleBean(FlywayConfigurationCustomizer::class.java)
+
+                val configuration = FluentConfiguration().locations("classpath:db/migration")
+                context.getBean(FlywayConfigurationCustomizer::class.java).customize(configuration)
+
+                assertThat(configuration.locations.map { it.toString() })
+                    .containsExactlyInAnyOrder(
+                        "classpath:db/migration",
+                        EVENT_SOURCING_POSTGRESQL_FLYWAY_LOCATION,
+                    )
+            }
+    }
+
+    @Test
+    fun `does not create flyway customizer when datasource url is not postgresql`() {
+        contextRunner
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:h2:mem:testdb",
+                "kopring.bricks.event-sourcing.jdbc.flyway.enabled=true",
+            ).run { context ->
+                assertThat(context).doesNotHaveBean(FlywayConfigurationCustomizer::class.java)
+            }
+    }
+
+    @Test
+    fun `rejects flyway schema with custom table name`() {
+        contextRunner
+            .withPropertyValues(
+                "spring.datasource.url=jdbc:postgresql://localhost:5432/app",
+                "kopring.bricks.event-sourcing.jdbc.flyway.enabled=true",
+                "kopring.bricks.event-sourcing.jdbc.table-name=custom_event_store",
+            ).run { context ->
+                assertThat(context).hasFailed()
+                assertThat(context.startupFailure)
+                    .hasRootCauseInstanceOf(IllegalArgumentException::class.java)
+                    .rootCause()
+                    .hasMessageContaining("kopring.bricks.event-sourcing.jdbc.flyway.enabled requires the default")
             }
     }
 
