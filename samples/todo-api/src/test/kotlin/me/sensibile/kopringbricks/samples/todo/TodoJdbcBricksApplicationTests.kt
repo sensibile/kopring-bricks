@@ -15,7 +15,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.simple.JdbcClient
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.servlet.MockMvc
@@ -28,8 +27,17 @@ import javax.sql.DataSource
 import kotlin.test.Test
 
 @Testcontainers
-@ActiveProfiles("jdbc")
-@SpringBootTest
+@SpringBootTest(
+    properties = [
+        "samples.todo.event-store.in-memory=false",
+        "kopring.bricks.audit-log.jdbc.dialect=postgresql",
+        "kopring.bricks.audit-log.jdbc.flyway.enabled=true",
+        "kopring.bricks.event-sourcing.jdbc.dialect=postgresql",
+        "kopring.bricks.event-sourcing.jdbc.flyway.enabled=true",
+        "kopring.bricks.outbox.jdbc.dialect=postgresql",
+        "kopring.bricks.outbox.jdbc.flyway.enabled=true",
+    ],
+)
 @AutoConfigureMockMvc
 @Import(TodoJdbcBricksApplicationTests.JdbcClientTestConfiguration::class)
 class TodoJdbcBricksApplicationTests {
@@ -62,16 +70,24 @@ class TodoJdbcBricksApplicationTests {
             { assertThat(auditRepository).isInstanceOf(JdbcAuditEventRepository::class.java) },
             { assertThat(eventStore).isInstanceOf(JdbcEventStore::class.java) },
             { assertThat(outboxRepository).isInstanceOf(JdbcOutboxEventRepository::class.java) },
-            { assertThat(jdbcClient.rowCount("audit_log")).isEqualTo(1) },
-            { assertThat(jdbcClient.rowCount("event_store")).isEqualTo(1) },
-            { assertThat(jdbcClient.rowCount("outbox_event")).isEqualTo(1) },
+            { assertThat(jdbcClient.rowCount(ExpectedTable.AUDIT_LOG)).isEqualTo(1) },
+            { assertThat(jdbcClient.rowCount(ExpectedTable.EVENT_STORE)).isEqualTo(1) },
+            { assertThat(jdbcClient.rowCount(ExpectedTable.OUTBOX_EVENT)).isEqualTo(1) },
         )
     }
 
-    private fun JdbcClient.rowCount(tableName: String): Long =
-        sql("select count(*) from $tableName")
+    private fun JdbcClient.rowCount(table: ExpectedTable): Long =
+        sql("select count(*) from ${table.tableName}")
             .query(Long::class.java)
             .single()
+
+    private enum class ExpectedTable(
+        val tableName: String,
+    ) {
+        AUDIT_LOG("audit_log"),
+        EVENT_STORE("event_store"),
+        OUTBOX_EVENT("outbox_event"),
+    }
 
     @TestConfiguration(proxyBeanMethods = false)
     class JdbcClientTestConfiguration {

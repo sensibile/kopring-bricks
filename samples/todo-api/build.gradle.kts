@@ -22,6 +22,8 @@ dependencies {
     implementation(libs.spring.boot.starter.validation)
 
     testImplementation(project(":test-support:kopring-bricks-test-support"))
+
+    // JDBC/Flyway dependencies are only used by TodoJdbcBricksApplicationTests.
     testImplementation(libs.flyway.core)
     testImplementation(libs.flyway.database.postgresql)
     testImplementation(libs.postgresql)

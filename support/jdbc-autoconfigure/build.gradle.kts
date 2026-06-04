@@ -1,4 +1,5 @@
 plugins {
+    `java-test-fixtures`
     id("kopring.kotlin-autoconfigure-conventions")
 }
 
@@ -15,6 +16,8 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
+            suppressPomMetadataWarningsFor("testFixturesApiElements")
+            suppressPomMetadataWarningsFor("testFixturesRuntimeElements")
             pom {
                 name = "Kopring Bricks JDBC Autoconfigure Support"
                 description = "Shared JDBC auto-configuration helpers for Kopring Bricks modules."
