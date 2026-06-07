@@ -1,5 +1,6 @@
 plugins {
     id("kopring.java-library-conventions")
+    id("org.jetbrains.kotlinx.kover")
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.kotlin.plugin.spring")
 }

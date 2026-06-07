@@ -25,6 +25,9 @@ import kotlin.test.fail
 
 @SpringBootTest(
     properties = [
+        "spring.autoconfigure.exclude=" +
+            "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration," +
+            "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration",
         "kopring.bricks.outbox.scheduler.enabled=true",
         "kopring.bricks.outbox.scheduler.fixed-delay=50ms",
     ],

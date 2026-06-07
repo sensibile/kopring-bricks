@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.spring)
+    alias(libs.plugins.kover)
     alias(libs.plugins.spring.boot)
 }
 
@@ -21,8 +22,17 @@ dependencies {
     implementation(libs.spring.boot.starter.validation)
 
     testImplementation(project(":test-support:kopring-bricks-test-support"))
+
+    // JDBC/Flyway dependencies are only used by TodoJdbcBricksApplicationTests.
+    testImplementation(libs.flyway.core)
+    testImplementation(libs.flyway.database.postgresql)
+    testImplementation(libs.postgresql)
+    testImplementation(libs.spring.boot.flyway)
+    testImplementation(libs.spring.boot.starter.jdbc)
     testImplementation(libs.spring.boot.starter.webmvc.test)
     testImplementation(libs.spring.boot.starter.test)
+    testImplementation(libs.testcontainers.junit.jupiter)
+    testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.kotlin.test.junit5)
     testRuntimeOnly(libs.junit.platform.launcher)
 }

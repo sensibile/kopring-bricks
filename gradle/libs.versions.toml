@@ -1,5 +1,6 @@
 [versions]
 kotlin = "2.3.20"
+kover = "0.9.8"
 spring-boot = "4.0.6"
 resilience4j = "2.4.0"
 testcontainers = "2.0.5"
@@ -9,6 +10,7 @@ kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", v
 kotlin-spring-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-allopen", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+kover-gradle-plugin = { module = "org.jetbrains.kotlinx:kover-gradle-plugin", version.ref = "kover" }
 
 spring-boot-gradle-plugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
 
@@ -41,6 +43,7 @@ spring-webmvc = { module = "org.springframework:spring-webmvc" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine" }
 context-propagation = { module = "io.micrometer:context-propagation" }
 flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-database-postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
 jakarta-servlet-api = { module = "jakarta.servlet:jakarta.servlet-api" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
@@ -54,4 +57,5 @@ testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgr
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

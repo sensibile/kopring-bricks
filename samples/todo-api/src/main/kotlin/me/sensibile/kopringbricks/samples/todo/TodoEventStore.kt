@@ -5,9 +5,16 @@ import me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventStore
 import me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventStoreEvent
 import me.sensibile.kopringbricks.eventsourcing.autoconfigure.EventStreamVersionConflictException
 import me.sensibile.kopringbricks.eventsourcing.autoconfigure.StoredEvent
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 @Component
+@ConditionalOnProperty(
+    prefix = "samples.todo.event-store",
+    name = ["in-memory"],
+    havingValue = "true",
+    matchIfMissing = true,
+)
 class TodoEventStore : EventStore {
     private val eventsByStream = mutableMapOf<String, MutableList<StoredEvent>>()
 

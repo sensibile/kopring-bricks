@@ -15,6 +15,8 @@ dependencies {
     compileOnly(libs.spring.boot.flyway)
 
     testImplementation(libs.flyway.core)
+    testImplementation(libs.flyway.database.postgresql)
+    testImplementation(testFixtures(project(":support:jdbc-autoconfigure")))
     testImplementation(libs.spring.boot.flyway)
     testImplementation(libs.spring.boot.starter.jdbc)
     testImplementation(libs.postgresql)

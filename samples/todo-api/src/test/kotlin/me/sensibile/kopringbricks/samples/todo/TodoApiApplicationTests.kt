@@ -26,7 +26,13 @@ import org.springframework.web.client.RestClient
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 
-@SpringBootTest
+@SpringBootTest(
+    properties = [
+        "spring.autoconfigure.exclude=" +
+            "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration," +
+            "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration",
+    ],
+)
 @AutoConfigureMockMvc
 @Import(TodoSampleTestSupportConfiguration::class)
 class TodoApiApplicationTests {
