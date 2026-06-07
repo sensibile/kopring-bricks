@@ -1,13 +1,33 @@
 package me.sensibile.kopringbricks.eventsourcing.autoconfigure
 
-class EventSourcingTemplate(
+import org.springframework.transaction.annotation.Transactional
+
+open class EventSourcingTemplate(
     private val eventStore: EventStore,
+    private val projections: List<EventProjection> = emptyList(),
 ) {
-    fun append(
+    constructor(eventStore: EventStore) : this(eventStore, emptyList())
+
+    @Transactional
+    open fun append(
         streamId: String,
         expectedVersion: Long,
         events: List<EventStoreEvent>,
-    ): EventAppendResult = eventStore.append(streamId, expectedVersion, events)
+    ): EventAppendResult = appendAndProject(streamId, expectedVersion, events, projections)
+
+    @Transactional
+    open fun append(
+        streamId: String,
+        expectedVersion: Long,
+        events: List<EventStoreEvent>,
+        projections: List<EventProjection>,
+    ): EventAppendResult =
+        appendAndProject(
+            streamId = streamId,
+            expectedVersion = expectedVersion,
+            events = events,
+            projections = (this.projections + projections).distinct(),
+        )
 
     fun load(
         streamId: String,
@@ -22,4 +42,19 @@ class EventSourcingTemplate(
     ): S =
         load(streamId, fromVersion)
             .fold(initialState, apply)
+
+    private fun appendAndProject(
+        streamId: String,
+        expectedVersion: Long,
+        events: List<EventStoreEvent>,
+        projections: List<EventProjection>,
+    ): EventAppendResult {
+        val result = eventStore.append(streamId, expectedVersion, events)
+        result.events.forEach { event ->
+            projections
+                .filter { projection -> projection.supports(event) }
+                .forEach { projection -> projection.project(event) }
+        }
+        return result
+    }
 }
