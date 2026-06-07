@@ -42,5 +42,8 @@ class EventSourcingAutoConfiguration {
     @Bean
     @ConditionalOnBean(EventStore::class)
     @ConditionalOnMissingBean
-    fun eventSourcingTemplate(eventStore: EventStore): EventSourcingTemplate = EventSourcingTemplate(eventStore)
+    fun eventSourcingTemplate(
+        eventStore: EventStore,
+        projections: ObjectProvider<EventProjection>,
+    ): EventSourcingTemplate = EventSourcingTemplate(eventStore, projections.orderedStream().toList())
 }
